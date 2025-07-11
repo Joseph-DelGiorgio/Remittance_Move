@@ -31,11 +31,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 }) => {
   const priceInSui = item.price / 1000000000; // Convert MIST to SUI
   const isOwner = currentUser === item.seller;
+  const isMockListing = /^\d+$/.test(item.id); // Check if ID is numeric (mock listing)
 
   return (
     <Card className="fade-in hover:shadow-lg transition-all duration-200">
       <CardHeader>
-        <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center mb-4">
+        <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center mb-4 relative">
           {item.imageUrl ? (
             <img
               src={item.imageUrl}
@@ -57,6 +58,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
                 />
               </svg>
+            </div>
+          )}
+          
+          {/* Mock listing indicator */}
+          {isMockListing && (
+            <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+              Demo
             </div>
           )}
         </div>
@@ -110,7 +118,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     disabled={isLoading}
                     loading={isLoading}
                   >
-                    Buy Now
+                    {isMockListing ? 'Demo Buy' : 'Buy Now'}
                   </Button>
                 )}
               </div>
@@ -124,6 +132,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           {isOwner && (
             <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
               Your item
+            </div>
+          )}
+          
+          {isMockListing && (
+            <div className="text-xs text-yellow-700 bg-yellow-50 px-2 py-1 rounded border border-yellow-200">
+              ⚠️ Demo listing - cannot be purchased on blockchain
             </div>
           )}
         </div>

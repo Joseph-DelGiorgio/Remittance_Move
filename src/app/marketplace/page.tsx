@@ -168,6 +168,18 @@ export default function MarketplacePage() {
     try {
       console.log('Buying carbon credits with real transaction:', listingId, 'for', totalPrice, 'MIST');
       
+      // Check if this is a mock listing (starts with a number)
+      if (listingId.match(/^\d+$/)) {
+        alert(
+          'This is a mock listing for demonstration purposes. Mock listings cannot be purchased on the blockchain.\n\n' +
+          'To buy real carbon credits:\n' +
+          '1. First purchase carbon credits from the treasury using "List Carbon Credits"\n' +
+          '2. Then list them for sale with real blockchain transactions\n' +
+          '3. Other users can then buy your listed credits'
+        );
+        return;
+      }
+      
       // Find the listing
       const listing = listings.find(l => l.id === listingId);
       if (!listing) {
@@ -204,6 +216,8 @@ export default function MarketplacePage() {
         alert('Insufficient balance for purchase');
       } else if (error.message?.includes('gas')) {
         alert('Gas estimation failed. Please try again.');
+      } else if (error.message?.includes('MoveAbort')) {
+        alert('Contract execution failed. This listing may not exist on the blockchain or may have already been sold.');
       } else {
         alert('Error purchasing carbon credits. Please try again.');
       }
@@ -359,6 +373,22 @@ export default function MarketplacePage() {
             </div>
             <p className="text-gray-400 mt-2">
               Be the first to list carbon credits in this category!
+            </p>
+          </div>
+        )}
+
+        {/* Note about mock listings */}
+        {filteredListings.length > 0 && (
+          <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-yellow-800 font-medium">Demo Listings</span>
+            </div>
+            <p className="text-yellow-700 text-sm">
+              The listings shown above are demonstration examples. To create real listings that can be purchased, 
+              use the "List Carbon Credits" button to purchase credits from the treasury and then list them for sale.
             </p>
           </div>
         )}
