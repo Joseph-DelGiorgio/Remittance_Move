@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ConnectButton, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { TransactionBlock } from '@mysten/sui';
+import { WalletCard } from '@/components/remittance/WalletCard';
+import { RemittanceForm } from '@/components/remittance/RemittanceForm';
+import { TransactionHistory } from '@/components/remittance/TransactionHistory';
 
 // Sui client for testnet
 const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
@@ -20,14 +23,58 @@ interface RemittanceEvent {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Sui Remittance</h1>
-          <p className="text-gray-600">Send stablecoins with zero platform fees</p>
-        </header>
-        <RemittanceApp />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gradient">Sui Remittance</h1>
+                <p className="text-sm text-gray-600">Zero-fee transfers on Sui</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
+                <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse-soft"></div>
+                <span>Testnet</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <RemittanceApp />
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 mt-16">
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center text-sm text-gray-600">
+            <p>Built on Sui Blockchain • Zero Platform Fees • Secure Transfers</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -35,8 +82,6 @@ export default function Home() {
 function RemittanceApp() {
   const currentAccount = useCurrentAccount();
   const signAndExecuteTransaction = useSignAndExecuteTransaction();
-  const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [events, setEvents] = useState<RemittanceEvent[]>([]);
   const [balance, setBalance] = useState('0');
@@ -61,9 +106,9 @@ function RemittanceApp() {
     }
   };
 
-  const sendRemittance = async () => {
-    if (!currentAccount?.address || !recipient || !amount) {
-      alert('Please fill in all fields');
+  const handleSendRemittance = async (recipient: string, amount: string) => {
+    if (!currentAccount?.address) {
+      alert('Please connect your wallet first');
       return;
     }
 
@@ -87,16 +132,10 @@ function RemittanceApp() {
       });
 
       const result = await signAndExecuteTransaction.mutateAsync({
-        transactionBlock: txb,
-        options: {
-          showEffects: true,
-          showEvents: true,
-        },
+        transaction: txb,
       });
 
-      if (result.effects?.status.status === 'success') {
-        alert('Remittance sent successfully!');
-        
+      if (result) {
         // Add to events list
         const newEvent: RemittanceEvent = {
           sender: currentAccount.address,
@@ -105,10 +144,6 @@ function RemittanceApp() {
           timestamp: new Date().toISOString(),
         };
         setEvents(prev => [newEvent, ...prev]);
-        
-        // Reset form
-        setRecipient('');
-        setAmount('');
         
         // Refresh balance
         fetchBalance();
@@ -124,91 +159,106 @@ function RemittanceApp() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Wallet Connection */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Wallet</h2>
-            {currentAccount ? (
-              <div className="text-sm text-gray-600">
-                <p>Connected: {currentAccount.address.slice(0, 8)}...{currentAccount.address.slice(-8)}</p>
-                <p>Balance: {parseInt(balance) / 1000000000} SUI</p>
-              </div>
-            ) : (
-              <p className="text-gray-600">Connect your wallet to start</p>
-            )}
-          </div>
-          <ConnectButton />
-        </div>
-      </div>
+    <div className="space-y-8">
+      {/* Wallet Card */}
+      <WalletCard balance={balance} />
 
       {/* Send Remittance Form */}
       {currentAccount && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Send Remittance</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recipient Address
-              </label>
-              <input
-                type="text"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                placeholder="0x..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Amount (SUI)
-              </label>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.1"
-                step="0.000000001"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <button
-              onClick={sendRemittance}
-              disabled={isLoading || !recipient || !amount}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? 'Sending...' : 'Send Remittance'}
-            </button>
-          </div>
-        </div>
+        <RemittanceForm
+          onSubmit={handleSendRemittance}
+          isLoading={isLoading}
+          balance={balance}
+        />
       )}
 
       {/* Transaction History */}
-      {currentAccount && events.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Transactions</h2>
-          <div className="space-y-3">
-            {events.map((event, index) => (
-              <div key={index} className="border border-gray-200 rounded-md p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">From:</span> {event.sender.slice(0, 8)}...{event.sender.slice(-8)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">To:</span> {event.recipient.slice(0, 8)}...{event.recipient.slice(-8)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">Amount:</span> {event.amount} SUI
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    {new Date(event.timestamp).toLocaleString()}
-                  </span>
-                </div>
+      {currentAccount && (
+        <TransactionHistory events={events} />
+      )}
+
+      {/* Connect Wallet Prompt */}
+      {!currentAccount && (
+        <div className="text-center py-16">
+          <div className="w-24 h-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg
+              className="w-12 h-12 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Welcome to Sui Remittance
+          </h2>
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            Connect your Sui wallet to start sending zero-fee remittances to anyone, anywhere in the world.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <svg
+                  className="w-6 h-6 text-success-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
               </div>
-            ))}
+              <p className="text-sm font-medium text-gray-900">Zero Fees</p>
+              <p className="text-xs text-gray-500">No platform charges</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <svg
+                  className="w-6 h-6 text-primary-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-900">Instant</p>
+              <p className="text-xs text-gray-500">Real-time transfers</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <svg
+                  className="w-6 h-6 text-warning-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-900">Secure</p>
+              <p className="text-xs text-gray-500">Blockchain security</p>
+            </div>
           </div>
         </div>
       )}
