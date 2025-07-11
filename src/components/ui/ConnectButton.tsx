@@ -1,6 +1,5 @@
 import React from 'react';
 import { ConnectButton as DappKitConnectButton, useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
-import { Button } from './Button';
 
 interface CustomConnectButtonProps {
   variant?: 'default' | 'secondary' | 'success' | 'warning' | 'error' | 'ghost' | 'outline';
@@ -15,6 +14,8 @@ export const ConnectButton: React.FC<CustomConnectButtonProps> = ({
   fullWidth = false,
   className,
 }) => {
+  console.log('ConnectButton component rendering');
+  
   const currentAccount = useCurrentAccount();
   const disconnectWallet = useDisconnectWallet();
 
@@ -31,46 +32,24 @@ export const ConnectButton: React.FC<CustomConnectButtonProps> = ({
             {formatAddress(currentAccount.address)}
           </span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
+        <button
           onClick={() => disconnectWallet.mutate()}
-          className="text-gray-600 hover:text-gray-800"
+          className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
         >
           Disconnect
-        </Button>
+        </button>
       </div>
     );
   }
 
+  // Simple styled button that wraps the dapp-kit ConnectButton
   return (
     <DappKitConnectButton>
-      {((props: { onClick: () => void }) => (
-        <Button
-          onClick={props.onClick}
-          variant={variant}
-          size={size}
-          fullWidth={fullWidth}
-          className={`${className} bg-white text-gray-900 border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-gray-200 font-semibold shadow-sm`}
-          leftIcon={
-            <svg
-              className="w-4 h-4 text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-          }
-        >
-          Connect Wallet
-        </Button>
-      )) as unknown as React.ReactNode}
+      <button
+        className={`px-6 py-3 bg-white text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 font-semibold shadow-sm ${className || ''}`}
+      >
+        Connect Wallet
+      </button>
     </DappKitConnectButton>
   );
 }; 

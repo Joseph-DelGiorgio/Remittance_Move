@@ -24,6 +24,8 @@ interface RemittanceEvent {
 }
 
 export default function Home() {
+  console.log('Home component rendering');
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Header */}
@@ -58,6 +60,13 @@ export default function Home() {
                 <span>Testnet</span>
               </div>
               <ConnectButton variant="outline" size="lg" className="px-6 py-3" />
+              {/* Fallback button for debugging */}
+              <button 
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={() => alert('Fallback button clicked - ConnectButton may not be rendering')}
+              >
+                Debug Button
+              </button>
             </div>
           </div>
         </div>
