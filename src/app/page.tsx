@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { WalletKitProvider, ConnectButton, useWalletKit } from '@mysten/wallet-kit';
-import { SuiClient, getFullnodeUrl, TransactionBlock } from '@mysten/sui.js/client';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
 
 // Sui client for testnet
 const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
@@ -83,20 +83,13 @@ function RemittanceApp() {
         return;
       }
 
-      // Convert amount to MIST (1 SUI = 1,000,000,000 MIST)
-      const amountInMist = Math.floor(parseFloat(amount) * 1000000000);
+      // Use the first coin for the transaction
+      const coin = coins.data[0];
 
-      // Create transaction block
-      const txb = new TransactionBlock();
-      
-      // Split the coin to the exact amount needed
-      const [coin] = txb.splitCoins(txb.gas, [amountInMist]);
-      
-      // Call the smart contract function
-      txb.moveCall({
-        target: `${PACKAGE_ID}::remittance::send_remittance`,
-        arguments: [coin, txb.pure(recipient)],
-        typeArguments: ['0x2::sui::SUI']
+      const txb = await suiClient.transferObject({
+        objectId: coin.coinObjectId,
+        recipient: recipient,
+        gasBudget: 10000000
       });
 
       const result = await signAndExecuteTransactionBlock({
