@@ -11,6 +11,17 @@ export const metadata: Metadata = {
   description: 'Send stablecoins with zero platform fees on the Sui blockchain',
 }
 
+// Suppress the Dialog controlled/uncontrolled warning in development
+if (process.env.NODE_ENV === 'development') {
+  const originalError = console.error;
+  console.error = (...args) => {
+    if (args[0]?.includes?.('Dialog is changing from uncontrolled to controlled')) {
+      return;
+    }
+    originalError.apply(console, args);
+  };
+}
+
 export default function RootLayout({
   children,
 }: {

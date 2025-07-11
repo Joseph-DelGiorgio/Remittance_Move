@@ -59,14 +59,7 @@ export default function Home() {
                 <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse-soft"></div>
                 <span>Testnet</span>
               </div>
-              <ConnectButton variant="outline" size="lg" className="px-6 py-3" />
-              {/* Fallback button for debugging */}
-              <button 
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={() => alert('Fallback button clicked - ConnectButton may not be rendering')}
-              >
-                Debug Button
-              </button>
+              <ConnectButton variant="default" size="lg" className="shadow-lg" />
             </div>
           </div>
         </div>
@@ -97,6 +90,8 @@ function RemittanceApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [events, setEvents] = useState<RemittanceEvent[]>([]);
   const [balance, setBalance] = useState('0');
+
+  console.log('RemittanceApp - Current account:', currentAccount);
 
   // Fetch user's SUI balance
   useEffect(() => {
@@ -250,6 +245,44 @@ function RemittanceApp() {
           <p className="text-gray-600 mb-8 max-w-md mx-auto">
             Connect your Sui wallet to start sending zero-fee remittances to anyone, anywhere in the world.
           </p>
+          
+          {/* Test button to verify styling */}
+          <div className="mb-6">
+            <button 
+              className="connect-button px-6 py-3 text-lg"
+              onClick={() => console.log('Test button clicked')}
+            >
+              🧪 Test Button (Should be Blue)
+            </button>
+          </div>
+          
+          {/* Wallet Connection Test */}
+          <div className="mb-6">
+            <button 
+              className="connect-button px-6 py-3 text-lg"
+              onClick={() => {
+                console.log('Manual wallet test clicked');
+                // Try to manually trigger wallet connection
+                if (typeof window !== 'undefined') {
+                  // Check if any wallet is available
+                  const hasSuiWallet = !!(window as any).suiWallet;
+                  const hasEthosWallet = !!(window as any).ethosWallet;
+                  const hasSuietWallet = !!(window as any).suietWallet;
+                  
+                  console.log('Available wallets:', {
+                    suiWallet: hasSuiWallet,
+                    ethosWallet: hasEthosWallet,
+                    suietWallet: hasSuietWallet
+                  });
+                  
+                  alert(`Available wallets:\nSui Wallet: ${hasSuiWallet}\nEthos Wallet: ${hasEthosWallet}\nSuiet Wallet: ${hasSuietWallet}`);
+                }
+              }}
+            >
+              🔍 Check Available Wallets
+            </button>
+          </div>
+          
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
             <div className="text-center">
               <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-2">
@@ -309,7 +342,7 @@ function RemittanceApp() {
               <p className="text-xs text-gray-500">Blockchain security</p>
             </div>
           </div>
-          <ConnectButton variant="outline" size="xl" className="px-8 py-4 text-lg" />
+          <ConnectButton variant="default" size="xl" className="shadow-xl" />
         </div>
       )}
     </div>
