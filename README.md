@@ -11,6 +11,11 @@ A decentralized remittance application built on the Sui blockchain that enables 
 - **Transaction History**: Track all your remittance transactions
 - **Event Emission**: On-chain events for transaction tracking
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/50d86a04-2a9b-471c-9b9c-75da3fe6ef7d" />
+
+
+
+
 ## 🏗️ Architecture
 
 ### Smart Contract (Move)
