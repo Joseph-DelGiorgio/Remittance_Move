@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useCurrentAccount, useSignAndExecuteTransaction, ConnectButton } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { ConnectButton } from '@/components/ui/ConnectButton';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { WalletCard } from '@/components/remittance/WalletCard';
@@ -56,7 +57,7 @@ export default function Home() {
                 <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse-soft"></div>
                 <span>Testnet</span>
               </div>
-              <ConnectButton />
+              <ConnectButton variant="default" size="md" />
             </div>
           </div>
         </div>
@@ -299,7 +300,7 @@ function RemittanceApp() {
               <p className="text-xs text-gray-500">Blockchain security</p>
             </div>
           </div>
-          <ConnectButton />
+          <ConnectButton variant="default" size="lg" fullWidth={false} />
         </div>
       )}
     </div>
