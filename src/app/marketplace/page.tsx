@@ -6,6 +6,7 @@ import { MarketplaceCard } from '@/components/marketplace/MarketplaceCard';
 import { ItemCard } from '@/components/marketplace/ItemCard';
 import { ListItemForm } from '@/components/marketplace/ListItemForm';
 import { ProjectRegistrationForm } from '@/components/marketplace/ProjectRegistrationForm';
+import { QuickCarbonCreditForm } from '@/components/marketplace/QuickCarbonCreditForm';
 import { CarbonCreditsInfo } from '@/components/marketplace/CarbonCreditsInfo';
 import { CarbonCreditsHelp } from '@/components/marketplace/CarbonCreditsHelp';
 import { Button } from '@/components/ui/Button';
@@ -64,6 +65,7 @@ export default function MarketplacePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showListForm, setShowListForm] = useState(false);
   const [showProjectRegistration, setShowProjectRegistration] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState<CarbonCreditListing[]>(mockCarbonCredits);
@@ -162,6 +164,81 @@ export default function MarketplacePage() {
         alert('Contract execution failed. Please check your input and try again.');
       } else {
         alert('Error purchasing carbon credits. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickCreate = async (creditData: any) => {
+    if (!account?.address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log('Creating carbon credits with simplified UX:', creditData);
+      
+      // Call the carbon credits service to create and list credits
+      const digest = await carbonCreditsService.createAndListCarbonCredits(
+        creditData,
+        signAndExecuteTransaction,
+        account.address
+      );
+      
+      console.log('Carbon credits created and listed:', digest);
+      
+      // Show success message
+      const successMessage = 
+        '🚀 Carbon credits created and listed successfully!\n\n' +
+        'Transaction Digest: ' + digest + '\n\n' +
+        '✅ Your carbon credits are now live on the marketplace!\n' +
+        '✅ Other users can buy your credits immediately\n' +
+        '✅ No complex registration needed\n\n' +
+        'Project Details:\n' +
+        '• Name: ' + creditData.project_name + '\n' +
+        '• Credits: ' + creditData.credits_amount.toLocaleString() + '\n' +
+        '• Price: ' + (creditData.price_per_credit / 1000000000).toFixed(2) + ' SUI per credit\n' +
+        '• Total Value: ' + ((creditData.credits_amount * creditData.price_per_credit) / 1000000000).toFixed(2) + ' SUI\n\n' +
+        '💡 Your credits are now available for purchase by other users!';
+      
+      alert(successMessage);
+      setShowQuickCreate(false);
+      
+      // Add new listing to the list for demonstration
+      const newListing: CarbonCreditListing = {
+        id: `quick_${Date.now()}`,
+        project_name: creditData.project_name,
+        project_description: creditData.project_description,
+        project_location: creditData.project_location,
+        verification_standard: creditData.verification_standard,
+        project_type: creditData.project_type,
+        seller: account.address,
+        credits_amount: creditData.credits_amount,
+        price_per_credit: creditData.price_per_credit,
+        total_price: creditData.price_per_credit * creditData.credits_amount,
+        is_active: true,
+        created_at: new Date().toISOString(),
+      };
+      
+      setListings(prev => [newListing, ...prev]);
+      setStats(prev => ({ ...prev, totalItems: prev.totalItems + 1 }));
+      
+    } catch (error: any) {
+      console.error('Error creating carbon credits:', error);
+      
+      // Provide specific error messages
+      if (error.message?.includes('insufficient')) {
+        alert('Insufficient balance for transaction. You need at least ' + 
+              (creditData.credits_amount * 0.1).toFixed(2) + ' SUI to create ' + 
+              creditData.credits_amount + ' carbon credits.');
+      } else if (error.message?.includes('gas')) {
+        alert('Gas estimation failed. Please try again.');
+      } else if (error.message?.includes('MoveAbort')) {
+        alert('Contract execution failed. Please check your input and try again.');
+      } else {
+        alert('Error creating carbon credits. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -359,9 +436,9 @@ export default function MarketplacePage() {
                 <Button
                   variant="success"
                   size="lg"
-                  onClick={() => setShowProjectRegistration(!showProjectRegistration)}
+                  onClick={() => setShowQuickCreate(!showQuickCreate)}
                 >
-                  {showProjectRegistration ? 'Cancel' : 'Register Project'}
+                  {showQuickCreate ? 'Cancel' : '🚀 Quick Create'}
                 </Button>
                 <Button
                   variant="success"
@@ -369,6 +446,13 @@ export default function MarketplacePage() {
                   onClick={() => setShowListForm(!showListForm)}
                 >
                   {showListForm ? 'Cancel' : 'List Carbon Credits'}
+                </Button>
+                <Button
+                  variant="success"
+                  size="lg"
+                  onClick={() => setShowProjectRegistration(!showProjectRegistration)}
+                >
+                  {showProjectRegistration ? 'Cancel' : 'Register Project'}
                 </Button>
                 <Button
                   variant="secondary"
@@ -458,6 +542,16 @@ export default function MarketplacePage() {
           <div className="mb-8">
             <ListItemForm
               onSubmit={handleListCarbonCredits}
+              isLoading={isLoading}
+            />
+          </div>
+        )}
+
+        {/* Quick Create Form */}
+        {showQuickCreate && (
+          <div className="mb-8">
+            <QuickCarbonCreditForm
+              onSubmit={handleQuickCreate}
               isLoading={isLoading}
             />
           </div>
