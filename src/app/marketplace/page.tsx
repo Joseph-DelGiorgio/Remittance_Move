@@ -118,7 +118,9 @@ export default function MarketplacePage() {
         '1. Check your wallet for CARBON_CREDIT coins\n' +
         '2. Use the "List for Sale" button to list your credits\n' +
         '3. Set your desired price per credit\n\n' +
-        'Note: You now have ' + mintingData.credits_amount + ' carbon credits that you can list for sale.';
+        'Note: You now have ' + mintingData.credits_amount + ' carbon credits that you can list for sale.\n\n' +
+        'Current Limitation: To list credits for sale, the project must be registered in the registry first. ' +
+        'For now, you can purchase credits from the treasury, but listing them requires additional setup.';
       
       alert(successMessage);
       
@@ -156,6 +158,8 @@ export default function MarketplacePage() {
         alert('Contract execution failed. This listing may not exist on the blockchain or may have already been sold.');
       } else if (error.message?.includes('TypeMismatch')) {
         alert('Contract error: Type mismatch. This listing may not exist on the blockchain.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
+      } else if (error.message?.includes('User rejected')) {
+        alert('Transaction was rejected by the user.\n\nThis means the wallet popup appeared but you clicked "Reject" or "Cancel".\n\nTo complete the purchase:\n1. Click "Buy Now" again\n2. Approve the transaction in your wallet popup\n3. Wait for the transaction to complete');
       } else {
         alert('Error purchasing carbon credits. Please try again.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
       }
@@ -234,6 +238,8 @@ export default function MarketplacePage() {
         alert('Contract execution failed. This listing may not exist on the blockchain or may have already been sold.');
       } else if (error.message?.includes('TypeMismatch')) {
         alert('Contract error: Type mismatch. This listing may not exist on the blockchain.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
+      } else if (error.message?.includes('User rejected')) {
+        alert('Transaction was rejected by the user.\n\nThis means the wallet popup appeared but you clicked "Reject" or "Cancel".\n\nTo complete the purchase:\n1. Click "Buy Now" again\n2. Approve the transaction in your wallet popup\n3. Wait for the transaction to complete');
       } else {
         alert('Error purchasing carbon credits. Please try again.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
       }
@@ -313,7 +319,14 @@ export default function MarketplacePage() {
               registry, and marketplace with real transaction functionality.
             </p>
             <div className="mt-3 text-sm text-green-600">
-              <p><strong>How to create real listings:</strong></p>
+              <p><strong>✅ Currently Working:</strong></p>
+              <ul className="list-disc list-inside space-y-1 mt-1">
+                <li>Purchase carbon credits from treasury (0.1 SUI per credit)</li>
+                <li>Wallet integration and transaction signing</li>
+                <li>Real blockchain transactions</li>
+                <li>Demo vs real listing distinction</li>
+              </ul>
+              <p className="mt-2"><strong>How to create real listings:</strong></p>
               <ol className="list-decimal list-inside space-y-1 mt-1">
                 <li>Click "List Carbon Credits" to purchase credits from treasury</li>
                 <li>Complete the form with your project details</li>
