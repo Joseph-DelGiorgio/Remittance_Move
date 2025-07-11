@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
-import { TransactionBlock } from '@mysten/sui';
+import { Transaction } from '@mysten/sui/transactions';
 import { WalletCard } from '@/components/remittance/WalletCard';
 import { RemittanceForm } from '@/components/remittance/RemittanceForm';
 import { TransactionHistory } from '@/components/remittance/TransactionHistory';
@@ -19,6 +19,7 @@ interface RemittanceEvent {
   recipient: string;
   amount: string;
   timestamp: string;
+  digest?: string;
 }
 
 export default function Home() {
@@ -100,7 +101,9 @@ function RemittanceApp() {
         owner: currentAccount.address,
         coinType: '0x2::sui::SUI',
       });
-      setBalance(balance.totalBalance);
+      // Convert MIST to SUI for display (1 SUI = 1,000,000,000 MIST)
+      const balanceInSui = (parseInt(balance.totalBalance) / 1000000000).toFixed(4);
+      setBalance(balanceInSui);
     } catch (error) {
       console.error('Error fetching balance:', error);
     }
@@ -112,14 +115,34 @@ function RemittanceApp() {
       return;
     }
 
+    // Validate recipient address
+    if (!recipient.startsWith('0x') || recipient.length !== 66) {
+      alert('Please enter a valid Sui address (0x followed by 64 characters)');
+      return;
+    }
+
+    // Validate amount
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    // Check if user has enough balance
+    const userBalance = parseFloat(balance);
+    if (amountNum > userBalance) {
+      alert(`Insufficient balance. You have ${balance} SUI`);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       // Convert amount to MIST (1 SUI = 1,000,000,000 MIST)
-      const amountInMist = Math.floor(parseFloat(amount) * 1000000000);
+      const amountInMist = Math.floor(amountNum * 1000000000);
 
       // Create transaction block
-      const txb = new TransactionBlock();
+      const txb = new Transaction();
       
       // Split the coin to the exact amount needed
       const [coin] = txb.splitCoins(txb.gas, [amountInMist]);
@@ -127,7 +150,7 @@ function RemittanceApp() {
       // Call the smart contract function
       txb.moveCall({
         target: `${PACKAGE_ID}::remittance::send_remittance`,
-        arguments: [coin, txb.pure(recipient)],
+        arguments: [coin, txb.pure('address', recipient) as any],
         typeArguments: ['0x2::sui::SUI']
       });
 
@@ -136,23 +159,38 @@ function RemittanceApp() {
       });
 
       if (result) {
-        // Add to events list
+        console.log('Transaction successful:', result);
+        
+        // Add to events list immediately for better UX
         const newEvent: RemittanceEvent = {
           sender: currentAccount.address,
           recipient: recipient,
           amount: amount,
           timestamp: new Date().toISOString(),
+          digest: result.digest
         };
         setEvents(prev => [newEvent, ...prev]);
         
         // Refresh balance
-        fetchBalance();
+        setTimeout(() => {
+          fetchBalance();
+        }, 2000);
+        
+        alert('Remittance sent successfully!');
       } else {
         alert('Transaction failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending remittance:', error);
-      alert('Error sending remittance. Please try again.');
+      
+      // Provide more specific error messages
+      if (error.message?.includes('insufficient')) {
+        alert('Insufficient balance for transaction');
+      } else if (error.message?.includes('gas')) {
+        alert('Gas estimation failed. Please try again.');
+      } else {
+        alert('Error sending remittance. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
