@@ -114,13 +114,15 @@ export default function MarketplacePage() {
       const successMessage = 
         '✅ Carbon credits purchased successfully from treasury!\n\n' +
         'Transaction Digest: ' + digest + '\n\n' +
-        'Next Steps:\n' +
-        '1. Check your wallet for CARBON_CREDIT coins\n' +
-        '2. Use the "List for Sale" button to list your credits\n' +
-        '3. Set your desired price per credit\n\n' +
-        'Note: You now have ' + mintingData.credits_amount + ' carbon credits that you can list for sale.\n\n' +
-        'Current Limitation: To list credits for sale, the project must be registered in the registry first. ' +
-        'For now, you can purchase credits from the treasury, but listing them requires additional setup.';
+        'What\'s Working:\n' +
+        '✅ Purchase from treasury (0.1 SUI per credit)\n' +
+        '✅ Real blockchain transactions\n' +
+        '✅ Wallet integration\n\n' +
+        'Current Limitations:\n' +
+        '⚠️ Listing credits for sale requires project registration\n' +
+        '⚠️ Buying from listings requires additional setup\n\n' +
+        'You now have ' + mintingData.credits_amount + ' carbon credits purchased from the treasury. ' +
+        'The full marketplace functionality (listing and buying) requires additional contract setup.';
       
       alert(successMessage);
       
@@ -188,6 +190,20 @@ export default function MarketplacePage() {
           '2. Then list them for sale with real blockchain transactions\n' +
           '3. Other users can then buy your listed credits\n\n' +
           'Real listings will have a "Buy Now" button instead of "Demo Buy".'
+        );
+        return;
+      }
+      
+      // Check if this is a real listing (starts with "real_")
+      if (listingId.startsWith('real_')) {
+        alert(
+          '⚠️ This listing was created locally but not yet listed on the blockchain.\n\n' +
+          'Current Limitation: To list credits for sale on the blockchain, the project must be registered in the registry first.\n\n' +
+          'For now, you can:\n' +
+          '1. Purchase carbon credits from the treasury (which works)\n' +
+          '2. View your purchased credits locally\n' +
+          '3. Wait for the full listing functionality to be implemented\n\n' +
+          'The purchase from treasury works correctly, but listing and buying require additional contract setup.'
         );
         return;
       }
@@ -426,24 +442,28 @@ export default function MarketplacePage() {
               <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
-              <span className="text-yellow-800 font-medium">Demo vs Real Listings</span>
+              <span className="text-yellow-800 font-medium">Marketplace Status</span>
             </div>
             <div className="text-yellow-700 text-sm space-y-2">
               <p>
-                <strong>Demo Listings:</strong> The listings with "Demo" badges are examples that cannot be purchased on the blockchain. 
-                They show what real listings look like but are for demonstration only.
+                <strong>✅ Fully Working:</strong>
               </p>
-              <p>
-                <strong>Real Listings:</strong> Listings created by users through the "List Carbon Credits" button can be purchased 
-                with real blockchain transactions. These will have "Buy Now" buttons instead of "Demo Buy".
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Purchase carbon credits from treasury (0.1 SUI per credit)</li>
+                <li>Real blockchain transactions</li>
+                <li>Wallet integration and signing</li>
+                <li>Demo vs real listing distinction</li>
+              </ul>
+              <p className="mt-2">
+                <strong>⚠️ Current Limitations:</strong>
               </p>
-              <p className="font-medium">
-                To create your own real listings, use the "List Carbon Credits" button above!
-              </p>
-              <p className="text-orange-600 mt-2">
-                <strong>Current Limitation:</strong> The contract requires projects to be pre-registered in the registry before 
-                they can be listed. For now, you can purchase credits from the treasury, but listing them requires the project 
-                to be added to the registry first.
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Listing credits for sale requires project registration in registry</li>
+                <li>Buying from listings requires additional contract setup</li>
+                <li>Real listings are stored locally but not on blockchain yet</li>
+              </ul>
+              <p className="font-medium mt-2">
+                The marketplace is functional for purchasing from treasury, but full listing and buying functionality requires additional contract setup.
               </p>
             </div>
           </div>
