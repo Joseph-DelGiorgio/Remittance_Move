@@ -121,6 +121,8 @@ function RemittanceApp() {
       return;
     }
 
+    console.log('Remittance request:', { recipient, amount, balance });
+
     // Validate recipient address
     if (!recipient.startsWith('0x') || recipient.length !== 66) {
       alert('Please enter a valid Sui address (0x followed by 64 characters)');
@@ -129,6 +131,8 @@ function RemittanceApp() {
 
     // Validate amount
     const amountNum = parseFloat(amount);
+    console.log('Amount validation:', { amount, amountNum, balance });
+    
     if (isNaN(amountNum) || amountNum <= 0) {
       alert('Please enter a valid amount');
       return;
@@ -136,6 +140,8 @@ function RemittanceApp() {
 
     // Check if user has enough balance
     const userBalance = parseFloat(balance);
+    console.log('Balance check:', { amountNum, userBalance, balance });
+    
     if (amountNum > userBalance) {
       alert(`Insufficient balance. You have ${balance} SUI`);
       return;
@@ -146,6 +152,7 @@ function RemittanceApp() {
     try {
       // Convert amount to MIST (1 SUI = 1,000,000,000 MIST)
       const amountInMist = Math.floor(amountNum * 1000000000);
+      console.log('Transaction details:', { amountNum, amountInMist, recipient });
 
       // Create transaction block
       const txb = new Transaction();

@@ -33,8 +33,11 @@ export const RemittanceForm: React.FC<RemittanceFormProps> = ({
       const numAmount = parseFloat(amount);
       if (isNaN(numAmount) || numAmount <= 0) {
         newErrors.amount = 'Please enter a valid amount';
-      } else if (numAmount > parseFloat(balance) / 1000000000) {
-        newErrors.amount = 'Insufficient balance';
+      } else {
+        const userBalance = parseFloat(balance);
+        if (numAmount > userBalance) {
+          newErrors.amount = `Insufficient balance. You have ${balance} SUI`;
+        }
       }
     }
 
@@ -51,7 +54,7 @@ export const RemittanceForm: React.FC<RemittanceFormProps> = ({
   };
 
   const formatBalance = (balance: string) => {
-    return (parseInt(balance) / 1000000000).toFixed(4);
+    return parseFloat(balance).toFixed(4);
   };
 
   return (
