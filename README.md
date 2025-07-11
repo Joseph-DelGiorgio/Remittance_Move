@@ -1,6 +1,6 @@
-# Sui Remittance - Zero Fee Transfers & Marketplace
+# Sui Remittance - Zero Fee Transfers & Carbon Credit Marketplace
 
-A decentralized remittance application built on the Sui blockchain that enables users to send stablecoins with zero platform fees, only paying Sui network gas fees. Now includes a fully functional marketplace for buying and selling items.
+A decentralized remittance application built on the Sui blockchain that enables users to send stablecoins with zero platform fees, only paying Sui network gas fees. Now includes a fully functional carbon credit marketplace for trading tokenized environmental assets.
 
 ## 🚀 Features
 
@@ -10,14 +10,12 @@ A decentralized remittance application built on the Sui blockchain that enables 
 - **Professional UI**: Clean, modern interface with responsive design
 - **Transaction History**: Track all your remittance transactions
 - **Event Emission**: On-chain events for transaction tracking
-- **Marketplace**: Buy and sell items with zero remittance fees
-- **Category Filtering**: Browse items by category
-- **Item Management**: List, buy, and remove items from the marketplace
+- **Carbon Credit Marketplace**: Trade tokenized carbon credits with zero remittance fees
+- **Smart Contract Integration**: Robust Move contracts using Sui's object model
+- **Category Filtering**: Browse carbon credits by project type
+- **Listing Management**: List, buy, and manage carbon credit tokens
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/50d86a04-2a9b-471c-9b9c-75da3fe6ef7d" />
-
-
-
 
 ## 🏗️ Architecture
 
@@ -25,7 +23,9 @@ A decentralized remittance application built on the Sui blockchain that enables 
 - **Remittance Package ID**: `0x2e366e507933e182ce9b758df6d0d24cd50702dd2081f9737d83e09b8232fdeb`
 - **Remittance Module**: `remittance`
 - **Remittance Function**: `send_remittance<CoinType>`
-- **Marketplace Module**: `marketplace` (in development)
+- **Carbon Credits Package ID**: `0x8844b13ebf2e421e69df405fff1b0e64228391d29ef37605ddd88b327ff604de`
+- **Carbon Credits Module**: `carbon_credits`
+- **Carbon Credits Functions**: `list_carbon_credits`, `buy_carbon_credits`
 - **Network**: Sui Testnet
 
 ### Frontend (Next.js)
@@ -42,13 +42,13 @@ Sui_Pay/
 │   ├── Move.toml
 │   ├── sources/
 │   │   ├── remittance.move    # Remittance contract
-│   │   └── marketplace.move   # Marketplace contract
+│   │   └── carbon_credits.move # Carbon credits marketplace contract
 │   └── README.md
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx           # Main remittance UI
 │   │   ├── marketplace/       # Marketplace pages
-│   │   │   └── page.tsx      # Marketplace UI
+│   │   │   └── page.tsx      # Carbon credits marketplace UI
 │   │   └── layout.tsx        # App layout
 │   ├── components/
 │   │   ├── remittance/        # Remittance components
@@ -104,26 +104,28 @@ The app will be available at `http://localhost:3000`
    - Recent transactions are displayed below
    - Shows sender, recipient, amount, and timestamp
 
-### Marketplace Features
-1. **Browse Items**
+### Carbon Credit Marketplace Features
+1. **Browse Carbon Credits**
    - Navigate to `/marketplace`
-   - Browse items by category
-   - View item details and prices
+   - Browse carbon credit listings by project type
+   - View credit details, prices, and verification standards
 
-2. **List Items**
+2. **List Carbon Credits**
    - Connect your wallet
-   - Click "List Item"
-   - Fill in item details (name, description, price, category)
+   - Click "List Carbon Credits"
+   - Provide project registry object ID
+   - Enter your Coin<CARBON_CREDIT> object ID
+   - Set price per credit in MIST
    - Submit listing
 
-3. **Buy Items**
-   - Click "Buy Now" on any item
+3. **Buy Carbon Credits**
+   - Click "Buy Now" on any carbon credit listing
    - Approve transaction in your wallet
-   - Item will be transferred to your wallet
+   - Receive the carbon credit tokens in your wallet
 
-4. **Manage Your Items**
-   - View your listed items
-   - Remove items from sale if needed
+4. **Manage Your Listings**
+   - View your listed carbon credits
+   - Track transaction history
 
 ## 🔧 Development
 
@@ -176,12 +178,14 @@ module remittance::remittance {
 }
 ```
 
-### Marketplace Module (In Development)
-The marketplace module provides:
-- Item listing functionality
-- Purchase transactions with fee collection
-- Category-based browsing
-- Seller management tools
+### Carbon Credits Module
+The carbon credits module provides:
+- Carbon credit token (CARBON_CREDIT) with proper abilities
+- CarbonCreditRegistry for verified projects
+- CarbonMarketplace with listing and buying functions
+- Robust object-based architecture using Sui's object model
+- Each listing is a key object owning the Coin<CARBON_CREDIT>
+- Secure transfer patterns for carbon credit tokens
 
 ## 🌐 Networks
 
@@ -205,6 +209,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Sui Foundation](https://sui.io/) for the blockchain platform
 - [Sui Wallet Kit](https://github.com/MystenLabs/sui/tree/main/sdk/wallet-kit) for wallet integration
 - [Next.js](https://nextjs.org/) for the frontend framework
+- [Klima DAO](https://klimadao.finance/) for inspiration on carbon credit tokenization
 
 ## 📞 Support
 
