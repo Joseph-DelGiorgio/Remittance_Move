@@ -1,6 +1,6 @@
-# Sui Remittance - Zero Fee Transfers
+# Sui Remittance - Zero Fee Transfers & Marketplace
 
-A decentralized remittance application built on the Sui blockchain that enables users to send stablecoins with zero platform fees, only paying Sui network gas fees.
+A decentralized remittance application built on the Sui blockchain that enables users to send stablecoins with zero platform fees, only paying Sui network gas fees. Now includes a fully functional marketplace for buying and selling items.
 
 ## 🚀 Features
 
@@ -10,6 +10,9 @@ A decentralized remittance application built on the Sui blockchain that enables 
 - **Professional UI**: Clean, modern interface with responsive design
 - **Transaction History**: Track all your remittance transactions
 - **Event Emission**: On-chain events for transaction tracking
+- **Marketplace**: Buy and sell items with zero remittance fees
+- **Category Filtering**: Browse items by category
+- **Item Management**: List, buy, and remove items from the marketplace
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/50d86a04-2a9b-471c-9b9c-75da3fe6ef7d" />
 
@@ -18,10 +21,11 @@ A decentralized remittance application built on the Sui blockchain that enables 
 
 ## 🏗️ Architecture
 
-### Smart Contract (Move)
-- **Package ID**: `0x2e366e507933e182ce9b758df6d0d24cd50702dd2081f9737d83e09b8232fdeb`
-- **Module**: `remittance`
-- **Function**: `send_remittance<CoinType>`
+### Smart Contracts (Move)
+- **Remittance Package ID**: `0x2e366e507933e182ce9b758df6d0d24cd50702dd2081f9737d83e09b8232fdeb`
+- **Remittance Module**: `remittance`
+- **Remittance Function**: `send_remittance<CoinType>`
+- **Marketplace Module**: `marketplace` (in development)
 - **Network**: Sui Testnet
 
 ### Frontend (Next.js)
@@ -34,20 +38,23 @@ A decentralized remittance application built on the Sui blockchain that enables 
 
 ```
 Sui_Pay/
-├── remittance/                 # Move smart contract
+├── remittance/                 # Move smart contracts
 │   ├── Move.toml
 │   ├── sources/
-│   │   └── remittance.move
+│   │   ├── remittance.move    # Remittance contract
+│   │   └── marketplace.move   # Marketplace contract
 │   └── README.md
-├── remittance-ui/             # Next.js frontend
-│   ├── src/
-│   │   └── app/
-│   │       ├── page.tsx       # Main UI
-│   │       ├── layout.tsx     # App layout
-│   │       └── globals.css    # Styles
-│   ├── package.json
-│   └── README.md
-└── README.md                  # This file
+├── src/
+│   ├── app/
+│   │   ├── page.tsx           # Main remittance UI
+│   │   ├── marketplace/       # Marketplace pages
+│   │   │   └── page.tsx      # Marketplace UI
+│   │   └── layout.tsx        # App layout
+│   ├── components/
+│   │   ├── remittance/        # Remittance components
+│   │   └── marketplace/       # Marketplace components
+│   └── globals.css           # Styles
+└── README.md                 # This file
 ```
 
 ## 🛠️ Installation & Setup
@@ -63,7 +70,7 @@ git clone https://github.com/Joseph-DelGiorgio/Remittance_Move.git
 cd Remittance_Move
 ```
 
-### 2. Setup Smart Contract
+### 2. Setup Smart Contracts
 ```bash
 cd remittance
 sui move build
@@ -72,7 +79,7 @@ sui client publish --gas-budget 100000000
 
 ### 3. Setup Frontend
 ```bash
-cd ../remittance-ui
+cd ..
 npm install
 npm run dev
 ```
@@ -81,20 +88,42 @@ The app will be available at `http://localhost:3000`
 
 ## 🎯 Usage
 
-### 1. Connect Wallet
-- Click "Connect Wallet" button
-- Choose your preferred Sui wallet
-- Approve the connection
+### Remittance Features
+1. **Connect Wallet**
+   - Click "Connect Wallet" button
+   - Choose your preferred Sui wallet
+   - Approve the connection
 
-### 2. Send Remittance
-- Enter recipient address (0x...)
-- Enter amount in SUI
-- Click "Send Remittance"
-- Approve transaction in your wallet
+2. **Send Remittance**
+   - Enter recipient address (0x...)
+   - Enter amount in SUI
+   - Click "Send Remittance"
+   - Approve transaction in your wallet
 
-### 3. View History
-- Recent transactions are displayed below
-- Shows sender, recipient, amount, and timestamp
+3. **View History**
+   - Recent transactions are displayed below
+   - Shows sender, recipient, amount, and timestamp
+
+### Marketplace Features
+1. **Browse Items**
+   - Navigate to `/marketplace`
+   - Browse items by category
+   - View item details and prices
+
+2. **List Items**
+   - Connect your wallet
+   - Click "List Item"
+   - Fill in item details (name, description, price, category)
+   - Submit listing
+
+3. **Buy Items**
+   - Click "Buy Now" on any item
+   - Approve transaction in your wallet
+   - Item will be transferred to your wallet
+
+4. **Manage Your Items**
+   - View your listed items
+   - Remove items from sale if needed
 
 ## 🔧 Development
 
@@ -107,7 +136,6 @@ sui move test
 
 ### Frontend Development
 ```bash
-cd remittance-ui
 npm run dev
 npm run build
 npm run lint
@@ -147,6 +175,13 @@ module remittance::remittance {
     }
 }
 ```
+
+### Marketplace Module (In Development)
+The marketplace module provides:
+- Item listing functionality
+- Purchase transactions with fee collection
+- Category-based browsing
+- Seller management tools
 
 ## 🌐 Networks
 
