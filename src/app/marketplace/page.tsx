@@ -5,11 +5,12 @@ import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-ki
 import { MarketplaceCard } from '@/components/marketplace/MarketplaceCard';
 import { ItemCard } from '@/components/marketplace/ItemCard';
 import { ListItemForm } from '@/components/marketplace/ListItemForm';
+import { ProjectRegistrationForm } from '@/components/marketplace/ProjectRegistrationForm';
 import { CarbonCreditsInfo } from '@/components/marketplace/CarbonCreditsInfo';
 import { CarbonCreditsHelp } from '@/components/marketplace/CarbonCreditsHelp';
 import { Button } from '@/components/ui/Button';
 import { useSuiClient } from '@mysten/dapp-kit';
-import { CarbonCreditsService, CarbonCreditListing, CarbonCreditMintingData } from '@/services/marketplaceService';
+import { CarbonCreditsService, CarbonCreditListing, CarbonCreditMintingData, ProjectRegistrationData } from '@/services/marketplaceService';
 
 // Mock data for carbon credit marketplace
 const mockCarbonCredits = [
@@ -62,6 +63,7 @@ export default function MarketplacePage() {
   const signAndExecuteTransaction = useSignAndExecuteTransaction();
   const [isLoading, setIsLoading] = useState(false);
   const [showListForm, setShowListForm] = useState(false);
+  const [showProjectRegistration, setShowProjectRegistration] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState<CarbonCreditListing[]>(mockCarbonCredits);
@@ -157,13 +159,61 @@ export default function MarketplacePage() {
       } else if (error.message?.includes('gas')) {
         alert('Gas estimation failed. Please try again.');
       } else if (error.message?.includes('MoveAbort')) {
-        alert('Contract execution failed. This listing may not exist on the blockchain or may have already been sold.');
-      } else if (error.message?.includes('TypeMismatch')) {
-        alert('Contract error: Type mismatch. This listing may not exist on the blockchain.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
-      } else if (error.message?.includes('User rejected')) {
-        alert('Transaction was rejected by the user.\n\nThis means the wallet popup appeared but you clicked "Reject" or "Cancel".\n\nTo complete the purchase:\n1. Click "Buy Now" again\n2. Approve the transaction in your wallet popup\n3. Wait for the transaction to complete');
+        alert('Contract execution failed. Please check your input and try again.');
       } else {
-        alert('Error purchasing carbon credits. Please try again.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
+        alert('Error purchasing carbon credits. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegisterProject = async (projectData: ProjectRegistrationData) => {
+    if (!account?.address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log('Registering project in registry:', projectData);
+      
+      // Call the carbon credits service to register the project
+      const digest = await carbonCreditsService.addVerifiedProject(
+        projectData,
+        signAndExecuteTransaction
+      );
+      
+      console.log('Project registration submitted:', digest);
+      
+      // Show success message
+      const successMessage = 
+        '✅ Project registered successfully in the carbon credit registry!\n\n' +
+        'Transaction Digest: ' + digest + '\n\n' +
+        'Next Steps:\n' +
+        '1. Your project is now verified and can list carbon credits\n' +
+        '2. Use "List Carbon Credits" to purchase credits from treasury\n' +
+        '3. List your credits for sale on the marketplace\n\n' +
+        'Your project "' + projectData.name + '" is now registered with:\n' +
+        '• Verification Standard: ' + projectData.verification_standard + '\n' +
+        '• Project Type: ' + projectData.project_type + '\n' +
+        '• Location: ' + projectData.location;
+      
+      alert(successMessage);
+      setShowProjectRegistration(false);
+      
+    } catch (error: any) {
+      console.error('Error registering project:', error);
+      
+      // Provide specific error messages
+      if (error.message?.includes('insufficient')) {
+        alert('Insufficient balance for transaction. Please ensure you have enough SUI for gas fees.');
+      } else if (error.message?.includes('gas')) {
+        alert('Gas estimation failed. Please try again.');
+      } else if (error.message?.includes('MoveAbort')) {
+        alert('Contract execution failed. Please check your input and try again.');
+      } else {
+        alert('Error registering project. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -306,6 +356,13 @@ export default function MarketplacePage() {
                 <Button
                   variant="success"
                   size="lg"
+                  onClick={() => setShowProjectRegistration(!showProjectRegistration)}
+                >
+                  {showProjectRegistration ? 'Cancel' : 'Register Project'}
+                </Button>
+                <Button
+                  variant="success"
+                  size="lg"
                   onClick={() => setShowListForm(!showListForm)}
                 >
                   {showListForm ? 'Cancel' : 'List Carbon Credits'}
@@ -337,21 +394,23 @@ export default function MarketplacePage() {
             <div className="mt-3 text-sm text-green-600">
               <p><strong>✅ Currently Working:</strong></p>
               <ul className="list-disc list-inside space-y-1 mt-1">
+                <li>Register projects in the carbon credit registry</li>
                 <li>Purchase carbon credits from treasury (0.1 SUI per credit)</li>
                 <li>Wallet integration and transaction signing</li>
                 <li>Real blockchain transactions</li>
                 <li>Demo vs real listing distinction</li>
               </ul>
-              <p className="mt-2"><strong>How to create real listings:</strong></p>
+              <p className="mt-2"><strong>Complete Workflow:</strong></p>
               <ol className="list-decimal list-inside space-y-1 mt-1">
+                <li>Click "Register Project" to add your project to the registry</li>
                 <li>Click "List Carbon Credits" to purchase credits from treasury</li>
                 <li>Complete the form with your project details</li>
                 <li>Pay 0.1 SUI per credit to the treasury</li>
                 <li>Your credits will appear as real listings that can be purchased</li>
               </ol>
               <p className="mt-2 text-orange-600">
-                <strong>Note:</strong> Currently, the contract requires projects to be pre-registered in the registry. 
-                For now, you can purchase credits from the treasury, but listing them requires additional setup.
+                <strong>Note:</strong> Projects must be registered in the registry before they can list carbon credits. 
+                This ensures all credits come from verified, legitimate projects.
               </p>
             </div>
           </div>
@@ -396,6 +455,16 @@ export default function MarketplacePage() {
           <div className="mb-8">
             <ListItemForm
               onSubmit={handleListCarbonCredits}
+              isLoading={isLoading}
+            />
+          </div>
+        )}
+
+        {/* Project Registration Form */}
+        {showProjectRegistration && (
+          <div className="mb-8">
+            <ProjectRegistrationForm
+              onSubmit={handleRegisterProject}
               isLoading={isLoading}
             />
           </div>

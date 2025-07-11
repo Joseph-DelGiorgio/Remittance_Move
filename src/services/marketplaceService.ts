@@ -25,16 +25,6 @@ export interface CarbonCreditListing {
   created_at: string;
 }
 
-export interface CarbonCreditMintingData {
-  project_name: string;
-  project_description: string;
-  project_location: string;
-  verification_standard: string;
-  project_type: string;
-  credits_amount: number;
-  price_per_credit: number;
-}
-
 export interface CarbonCreditProject {
   project_id: string;
   name: string;
@@ -46,6 +36,26 @@ export interface CarbonCreditProject {
   expiry_date: number;
 }
 
+export interface ProjectRegistrationData {
+  project_id: string; // address
+  name: string;
+  description: string;
+  location: string;
+  verification_standard: string;
+  project_type: string;
+  expiry_date: number;
+}
+
+export interface CarbonCreditMintingData {
+  project_name: string;
+  project_description: string;
+  project_location: string;
+  verification_standard: string;
+  project_type: string;
+  credits_amount: number;
+  price_per_credit: number;
+}
+
 export interface ListCarbonCreditData {
   project_id: string;
   coin_object_id: string; // The Coin<CARBON_CREDIT> object ID
@@ -55,15 +65,7 @@ export interface ListCarbonCreditData {
 export class CarbonCreditsService {
   // Add verified project to registry (for testing purposes)
   async addVerifiedProject(
-    projectData: {
-      project_id: string; // address
-      name: string;
-      description: string;
-      location: string;
-      verification_standard: string;
-      project_type: string;
-      expiry_date: number;
-    },
+    projectData: ProjectRegistrationData,
     signAndExecuteTransaction: any
   ): Promise<string> {
     try {
@@ -126,6 +128,38 @@ export class CarbonCreditsService {
       return result.digest;
     } catch (error) {
       console.error('Error purchasing carbon credits:', error);
+      throw error;
+    }
+  }
+
+  // Complete workflow: Register project, purchase credits, and list them
+  async completeCarbonCreditWorkflow(
+    projectData: ProjectRegistrationData,
+    mintingData: CarbonCreditMintingData,
+    signAndExecuteTransaction: any
+  ): Promise<{ projectDigest: string; purchaseDigest: string; listingDigest?: string }> {
+    try {
+      console.log('Starting complete carbon credit workflow');
+      
+      // Step 1: Register the project
+      console.log('Step 1: Registering project in registry');
+      const projectDigest = await this.addVerifiedProject(projectData, signAndExecuteTransaction);
+      
+      // Step 2: Purchase carbon credits from treasury
+      console.log('Step 2: Purchasing carbon credits from treasury');
+      const purchaseDigest = await this.mintAndListCarbonCredits(mintingData, signAndExecuteTransaction);
+      
+      // Step 3: List the credits (this would require the coin object ID from the purchase)
+      // For now, we'll return the digests and let the user know they can list manually
+      console.log('Step 3: Project registered and credits purchased successfully');
+      
+      return {
+        projectDigest,
+        purchaseDigest,
+        listingDigest: undefined // Would be set if we had the coin object ID
+      };
+    } catch (error) {
+      console.error('Error in complete carbon credit workflow:', error);
       throw error;
     }
   }
