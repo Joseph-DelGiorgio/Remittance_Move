@@ -13,7 +13,7 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
   isLoading = false,
 }) => {
   const [formData, setFormData] = useState<ProjectRegistrationData>({
-    project_id: '',
+    project_id: '', // This will be auto-generated
     name: '',
     description: '',
     location: '',
@@ -44,7 +44,10 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Generate a unique project ID based on timestamp and name
+    const uniqueId = `project_${Date.now()}_${formData.name.replace(/\s+/g, '_').toLowerCase()}`;
+    const projectDataWithId = { ...formData, project_id: uniqueId };
+    onSubmit(projectDataWithId);
   };
 
   const handleInputChange = (field: keyof ProjectRegistrationData, value: string | number) => {
@@ -62,22 +65,18 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
       
       <CardBody>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Project ID */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Project ID (Address)
-            </label>
-            <input
-              type="text"
-              value={formData.project_id}
-              onChange={(e) => handleInputChange('project_id', e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Unique identifier for your project (can be any valid address)
-            </p>
+          {/* Project ID Info */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-green-800 font-medium">Project ID Information</span>
+            </div>
+            <div className="text-green-700 text-sm">
+              <p><strong>Project ID will be automatically generated</strong> when you register your project.</p>
+              <p className="mt-1">The Project ID is the unique object ID of your registered project on the Sui blockchain.</p>
+            </div>
           </div>
 
           {/* Project Name */}
@@ -199,10 +198,8 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
           <div className="flex justify-end">
             <Button
               type="submit"
-              variant="success"
-              size="lg"
               disabled={isLoading}
-              loading={isLoading}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
             >
               {isLoading ? 'Registering Project...' : 'Register Project'}
             </Button>

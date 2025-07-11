@@ -186,18 +186,21 @@ export default function MarketplacePage() {
       
       console.log('Project registration submitted:', digest);
       
-      // Show success message
+      // Show success message with Project ID
       const successMessage = 
         '✅ Project registered successfully in the carbon credit registry!\n\n' +
         'Transaction Digest: ' + digest + '\n\n' +
+        '📋 Your Project ID: ' + projectData.project_id + '\n\n' +
         'Next Steps:\n' +
-        '1. Your project is now verified and can list carbon credits\n' +
-        '2. Use "List Carbon Credits" to purchase credits from treasury\n' +
+        '1. ✅ Your project is now verified and can list carbon credits\n' +
+        '2. Use "Mint & List Carbon Credits" to purchase credits from treasury\n' +
         '3. List your credits for sale on the marketplace\n\n' +
         'Your project "' + projectData.name + '" is now registered with:\n' +
+        '• Project ID: ' + projectData.project_id + '\n' +
         '• Verification Standard: ' + projectData.verification_standard + '\n' +
         '• Project Type: ' + projectData.project_type + '\n' +
-        '• Location: ' + projectData.location;
+        '• Location: ' + projectData.location + '\n\n' +
+        '💡 Save your Project ID - you\'ll need it when listing carbon credits!';
       
       alert(successMessage);
       setShowProjectRegistration(false);
