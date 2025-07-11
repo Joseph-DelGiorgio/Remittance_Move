@@ -10,7 +10,7 @@ interface CustomConnectButtonProps {
 }
 
 export const ConnectButton: React.FC<CustomConnectButtonProps> = ({
-  variant = 'default',
+  variant = 'outline',
   size = 'md',
   fullWidth = false,
   className,
@@ -51,10 +51,10 @@ export const ConnectButton: React.FC<CustomConnectButtonProps> = ({
           variant={variant}
           size={size}
           fullWidth={fullWidth}
-          className={className}
+          className={`${className} bg-white text-gray-900 border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-gray-200 font-semibold shadow-sm`}
           leftIcon={
             <svg
-              className="w-4 h-4"
+              className="w-4 h-4 text-gray-700"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

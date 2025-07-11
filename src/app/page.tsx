@@ -57,7 +57,7 @@ export default function Home() {
                 <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse-soft"></div>
                 <span>Testnet</span>
               </div>
-              <ConnectButton variant="default" size="md" />
+              <ConnectButton variant="outline" size="lg" className="px-6 py-3" />
             </div>
           </div>
         </div>
@@ -300,7 +300,7 @@ function RemittanceApp() {
               <p className="text-xs text-gray-500">Blockchain security</p>
             </div>
           </div>
-          <ConnectButton variant="default" size="lg" fullWidth={false} />
+          <ConnectButton variant="outline" size="xl" className="px-8 py-4 text-lg" />
         </div>
       )}
     </div>
