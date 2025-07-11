@@ -196,11 +196,11 @@ export default function MarketplacePage() {
         '2. Use "Mint & List Carbon Credits" to purchase credits from treasury\n' +
         '3. List your credits for sale on the marketplace\n\n' +
         'Your project "' + projectData.name + '" is now registered with:\n' +
-        '• Project ID: ' + projectData.project_id + '\n' +
+        '• Project ID (Wallet Address): ' + projectData.project_id + '\n' +
         '• Verification Standard: ' + projectData.verification_standard + '\n' +
         '• Project Type: ' + projectData.project_type + '\n' +
         '• Location: ' + projectData.location + '\n\n' +
-        '💡 Save your Project ID - you\'ll need it when listing carbon credits!';
+        '💡 Your Project ID is your wallet address - you can use it to list carbon credits!';
       
       alert(successMessage);
       setShowProjectRegistration(false);

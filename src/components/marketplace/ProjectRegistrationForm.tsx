@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ProjectRegistrationData } from '@/services/marketplaceService';
+import { useCurrentAccount } from '@mysten/dapp-kit';
 
 interface ProjectRegistrationFormProps {
   onSubmit: (projectData: ProjectRegistrationData) => void;
@@ -12,8 +13,10 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
   onSubmit,
   isLoading = false,
 }) => {
+  const account = useCurrentAccount();
+  
   const [formData, setFormData] = useState<ProjectRegistrationData>({
-    project_id: '', // This will be auto-generated
+    project_id: '', // This will be set to the user's wallet address
     name: '',
     description: '',
     location: '',
@@ -44,9 +47,15 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Generate a unique project ID based on timestamp and name
-    const uniqueId = `project_${Date.now()}_${formData.name.replace(/\s+/g, '_').toLowerCase()}`;
-    const projectDataWithId = { ...formData, project_id: uniqueId };
+    
+    if (!account?.address) {
+      alert('Please connect your wallet first to register a project');
+      return;
+    }
+    
+    // Use the user's wallet address as the project ID
+    // This is a valid Sui address and makes sense as a project identifier
+    const projectDataWithId = { ...formData, project_id: account.address };
     onSubmit(projectDataWithId);
   };
 
@@ -74,8 +83,13 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
               <span className="text-green-800 font-medium">Project ID Information</span>
             </div>
             <div className="text-green-700 text-sm">
-              <p><strong>Project ID will be automatically generated</strong> when you register your project.</p>
-              <p className="mt-1">The Project ID is the unique object ID of your registered project on the Sui blockchain.</p>
+              <p><strong>Project ID will be your wallet address</strong> when you register your project.</p>
+              <p className="mt-1">This ensures each project is uniquely identified by the wallet that registered it.</p>
+              {account?.address && (
+                <p className="mt-2 text-xs bg-green-100 p-2 rounded">
+                  <strong>Your Project ID will be:</strong> {account.address}
+                </p>
+              )}
             </div>
           </div>
 
@@ -198,8 +212,8 @@ export const ProjectRegistrationForm: React.FC<ProjectRegistrationFormProps> = (
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={isLoading}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              disabled={isLoading || !account?.address}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Registering Project...' : 'Register Project'}
             </Button>

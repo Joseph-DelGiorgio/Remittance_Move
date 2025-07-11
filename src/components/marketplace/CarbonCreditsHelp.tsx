@@ -72,23 +72,23 @@ export const CarbonCreditsHelp: React.FC = () => {
         <div>
           <h4 className="text-lg font-semibold text-green-800 mb-3">Understanding Project IDs</h4>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="text-yellow-800 text-sm space-y-2">
-              <p><strong>What is a Project ID?</strong></p>
-              <p>• The Project ID is the unique object ID of your registered project on the Sui blockchain</p>
-              <p>• It's automatically generated when you register your project</p>
-              <p>• Format: <code className="bg-yellow-100 px-1 rounded">project_[timestamp]_[name]</code></p>
-              <p>• Example: <code className="bg-yellow-100 px-1 rounded">project_1703123456789_amazon_rainforest_conservation</code></p>
-              
-              <p className="mt-3"><strong>Why do you need a Project ID?</strong></p>
-              <p>• Only registered projects can mint and list carbon credits</p>
-              <p>• The Project ID links your carbon credits to your verified project</p>
-              <p>• It ensures all credits come from legitimate, verified environmental projects</p>
-              
-              <p className="mt-3"><strong>How to find your Project ID:</strong></p>
-              <p>• After registering a project, the Project ID is shown in the success message</p>
-              <p>• Save this ID - you'll need it when minting carbon credits</p>
-              <p>• You can also find it in your transaction history on the Sui blockchain</p>
-            </div>
+                         <div className="text-yellow-800 text-sm space-y-2">
+               <p><strong>What is a Project ID?</strong></p>
+               <p>• The Project ID is your wallet address that registered the project</p>
+               <p>• It's automatically set to your connected wallet address when you register</p>
+               <p>• Format: <code className="bg-yellow-100 px-1 rounded">0x...</code> (Sui wallet address)</p>
+               <p>• Example: <code className="bg-yellow-100 px-1 rounded">0x1234567890abcdef1234567890abcdef12345678</code></p>
+               
+               <p className="mt-3"><strong>Why do you need a Project ID?</strong></p>
+               <p>• Only registered projects can mint and list carbon credits</p>
+               <p>• The Project ID links your carbon credits to your verified project</p>
+               <p>• It ensures all credits come from legitimate, verified environmental projects</p>
+               
+               <p className="mt-3"><strong>How to find your Project ID:</strong></p>
+               <p>• Your Project ID is your wallet address - you can see it in your wallet</p>
+               <p>• After registering a project, the Project ID is shown in the success message</p>
+               <p>• You can also find it in your transaction history on the Sui blockchain</p>
+             </div>
           </div>
         </div>
 
