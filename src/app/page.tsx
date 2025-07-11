@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { WalletKitProvider, ConnectButton, useWalletKit } from '@mysten/wallet-kit';
-import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
+import { ConnectButton, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { TransactionBlock } from '@mysten/sui';
 
 // Sui client for testnet
 const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
@@ -19,23 +20,21 @@ interface RemittanceEvent {
 
 export default function Home() {
   return (
-    <WalletKitProvider>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 py-8">
-          <header className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Sui Remittance</h1>
-            <p className="text-gray-600">Send stablecoins with zero platform fees</p>
-          </header>
-          
-          <RemittanceApp />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8">
+        <header className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Sui Remittance</h1>
+          <p className="text-gray-600">Send stablecoins with zero platform fees</p>
+        </header>
+        <RemittanceApp />
       </div>
-    </WalletKitProvider>
+    </div>
   );
 }
 
 function RemittanceApp() {
-  const { currentAccount, signAndExecuteTransactionBlock } = useWalletKit();
+  const currentAccount = useCurrentAccount();
+  const signAndExecuteTransaction = useSignAndExecuteTransaction();
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,11 +50,10 @@ function RemittanceApp() {
 
   const fetchBalance = async () => {
     if (!currentAccount?.address) return;
-    
     try {
       const balance = await suiClient.getBalance({
         owner: currentAccount.address,
-        coinType: '0x2::sui::SUI'
+        coinType: '0x2::sui::SUI',
       });
       setBalance(balance.totalBalance);
     } catch (error) {
@@ -72,25 +70,51 @@ function RemittanceApp() {
     setIsLoading(true);
 
     try {
-      // For now, let's simulate a successful transaction
-      // This will be replaced with actual smart contract calls once we resolve the SDK issues
-      alert('Transaction simulation successful! (Smart contract integration coming soon)');
+      // Convert amount to MIST (1 SUI = 1,000,000,000 MIST)
+      const amountInMist = Math.floor(parseFloat(amount) * 1000000000);
+
+      // Create transaction block
+      const txb = new TransactionBlock();
       
-      // Add to events list
-      const newEvent: RemittanceEvent = {
-        sender: currentAccount.address,
-        recipient: recipient,
-        amount: amount,
-        timestamp: new Date().toISOString(),
-      };
-      setEvents(prev => [newEvent, ...prev]);
+      // Split the coin to the exact amount needed
+      const [coin] = txb.splitCoins(txb.gas, [amountInMist]);
       
-      // Reset form
-      setRecipient('');
-      setAmount('');
-      
-      // Refresh balance
-      fetchBalance();
+      // Call the smart contract function
+      txb.moveCall({
+        target: `${PACKAGE_ID}::remittance::send_remittance`,
+        arguments: [coin, txb.pure(recipient)],
+        typeArguments: ['0x2::sui::SUI']
+      });
+
+      const result = await signAndExecuteTransaction.mutateAsync({
+        transactionBlock: txb,
+        options: {
+          showEffects: true,
+          showEvents: true,
+        },
+      });
+
+      if (result.effects?.status.status === 'success') {
+        alert('Remittance sent successfully!');
+        
+        // Add to events list
+        const newEvent: RemittanceEvent = {
+          sender: currentAccount.address,
+          recipient: recipient,
+          amount: amount,
+          timestamp: new Date().toISOString(),
+        };
+        setEvents(prev => [newEvent, ...prev]);
+        
+        // Reset form
+        setRecipient('');
+        setAmount('');
+        
+        // Refresh balance
+        fetchBalance();
+      } else {
+        alert('Transaction failed');
+      }
     } catch (error) {
       console.error('Error sending remittance:', error);
       alert('Error sending remittance. Please try again.');
