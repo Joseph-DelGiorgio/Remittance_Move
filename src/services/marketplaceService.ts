@@ -53,6 +53,49 @@ export interface ListCarbonCreditData {
 }
 
 export class CarbonCreditsService {
+  // Add verified project to registry (for testing purposes)
+  async addVerifiedProject(
+    projectData: {
+      project_id: string; // address
+      name: string;
+      description: string;
+      location: string;
+      verification_standard: string;
+      project_type: string;
+      expiry_date: number;
+    },
+    signAndExecuteTransaction: any
+  ): Promise<string> {
+    try {
+      console.log('Adding verified project to registry:', projectData);
+      
+      const txb = new Transaction();
+      
+      txb.moveCall({
+        target: `${CARBON_CREDITS_PACKAGE_ID}::carbon_credits::add_verified_project`,
+        arguments: [
+          txb.object(CARBON_REGISTRY_OBJECT_ID),
+          txb.pure.address(projectData.project_id),
+          txb.pure(new Uint8Array(Buffer.from(projectData.name, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(projectData.description, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(projectData.location, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(projectData.verification_standard, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(projectData.project_type, 'utf8'))),
+          txb.pure.u64(projectData.expiry_date),
+        ],
+      });
+
+      const result = await signAndExecuteTransaction.mutateAsync({
+        transaction: txb,
+      });
+      console.log('Verified project added successfully:', result);
+      return result.digest;
+    } catch (error) {
+      console.error('Error adding verified project:', error);
+      throw error;
+    }
+  }
+
   // Purchase carbon credits from treasury and then list them
   async mintAndListCarbonCredits(
     mintingData: CarbonCreditMintingData,
@@ -98,6 +141,7 @@ export class CarbonCreditsService {
       credits_amount: number;
       price_per_credit: number;
       coin_object_id: string; // The Coin<CARBON_CREDIT> object ID from treasury purchase
+      project_id: string; // The project ID (address) that must exist in registry
     },
     signAndExecuteTransaction: any
   ): Promise<string> {
@@ -111,13 +155,10 @@ export class CarbonCreditsService {
         target: `${CARBON_CREDITS_PACKAGE_ID}::carbon_credits::list_carbon_credits`,
         arguments: [
           txb.object(CARBON_MARKETPLACE_OBJECT_ID),
+          txb.object(CARBON_REGISTRY_OBJECT_ID), // Add registry parameter
+          txb.pure.address(listingData.project_id), // Project ID must exist in registry
           txb.object(listingData.coin_object_id), // The Coin<CARBON_CREDIT> object
           txb.pure.u64(listingData.price_per_credit), // Price per credit in MIST
-          txb.pure(new Uint8Array(Buffer.from(listingData.project_name, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(listingData.project_description, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(listingData.project_location, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(listingData.verification_standard, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(listingData.project_type, 'utf8'))),
         ],
       });
 
@@ -146,7 +187,7 @@ export class CarbonCreditsService {
         target: `${CARBON_CREDITS_PACKAGE_ID}::carbon_credits::buy_carbon_credits`,
         arguments: [
           txb.object(CARBON_MARKETPLACE_OBJECT_ID),
-          txb.pure.address(listing_id),
+          txb.pure.address(listing_id), // This should be the listing_id (seller address)
           coin,
         ],
       });

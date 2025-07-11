@@ -153,9 +153,11 @@ export default function MarketplacePage() {
       } else if (error.message?.includes('gas')) {
         alert('Gas estimation failed. Please try again.');
       } else if (error.message?.includes('MoveAbort')) {
-        alert('Contract execution failed. Please check your input and try again.');
+        alert('Contract execution failed. This listing may not exist on the blockchain or may have already been sold.');
+      } else if (error.message?.includes('TypeMismatch')) {
+        alert('Contract error: Type mismatch. This listing may not exist on the blockchain.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
       } else {
-        alert('Error purchasing carbon credits. Please try again.');
+        alert('Error purchasing carbon credits. Please try again.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
       }
     } finally {
       setIsLoading(false);
@@ -192,9 +194,15 @@ export default function MarketplacePage() {
         throw new Error('Carbon credit listing not found');
       }
       
+      // For real listings, we need to use the seller address as the listing_id
+      // since that's how the contract stores listings
+      const listing_id = listing.seller;
+      
+      console.log('Using listing_id (seller address):', listing_id);
+      
       // Call the carbon credits service
       const digest = await carbonCreditsService.buyCarbonCredits(
-        listing.seller, // listing_id is the seller address in our mock
+        listing_id, // Use seller address as listing_id
         totalPrice,
         signAndExecuteTransaction
       );
@@ -224,8 +232,10 @@ export default function MarketplacePage() {
         alert('Gas estimation failed. Please try again.');
       } else if (error.message?.includes('MoveAbort')) {
         alert('Contract execution failed. This listing may not exist on the blockchain or may have already been sold.');
+      } else if (error.message?.includes('TypeMismatch')) {
+        alert('Contract error: Type mismatch. This listing may not exist on the blockchain.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
       } else {
-        alert('Error purchasing carbon credits. Please try again.');
+        alert('Error purchasing carbon credits. Please try again.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
       }
     } finally {
       setIsLoading(false);
@@ -310,6 +320,10 @@ export default function MarketplacePage() {
                 <li>Pay 0.1 SUI per credit to the treasury</li>
                 <li>Your credits will appear as real listings that can be purchased</li>
               </ol>
+              <p className="mt-2 text-orange-600">
+                <strong>Note:</strong> Currently, the contract requires projects to be pre-registered in the registry. 
+                For now, you can purchase credits from the treasury, but listing them requires additional setup.
+              </p>
             </div>
           </div>
         </div>
@@ -412,6 +426,11 @@ export default function MarketplacePage() {
               </p>
               <p className="font-medium">
                 To create your own real listings, use the "List Carbon Credits" button above!
+              </p>
+              <p className="text-orange-600 mt-2">
+                <strong>Current Limitation:</strong> The contract requires projects to be pre-registered in the registry before 
+                they can be listed. For now, you can purchase credits from the treasury, but listing them requires the project 
+                to be added to the registry first.
               </p>
             </div>
           </div>
