@@ -87,6 +87,51 @@ export class CarbonCreditsService {
     }
   }
 
+  // List carbon credits on the marketplace (after purchasing from treasury)
+  async listCarbonCredits(
+    listingData: {
+      project_name: string;
+      project_description: string;
+      project_location: string;
+      verification_standard: string;
+      project_type: string;
+      credits_amount: number;
+      price_per_credit: number;
+      coin_object_id: string; // The Coin<CARBON_CREDIT> object ID from treasury purchase
+    },
+    signAndExecuteTransaction: any
+  ): Promise<string> {
+    try {
+      console.log('Listing carbon credits on marketplace:', listingData);
+      
+      const txb = new Transaction();
+      
+      // List the carbon credits on the marketplace
+      txb.moveCall({
+        target: `${CARBON_CREDITS_PACKAGE_ID}::carbon_credits::list_carbon_credits`,
+        arguments: [
+          txb.object(CARBON_MARKETPLACE_OBJECT_ID),
+          txb.object(listingData.coin_object_id), // The Coin<CARBON_CREDIT> object
+          txb.pure.u64(listingData.price_per_credit), // Price per credit in MIST
+          txb.pure(new Uint8Array(Buffer.from(listingData.project_name, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(listingData.project_description, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(listingData.project_location, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(listingData.verification_standard, 'utf8'))),
+          txb.pure(new Uint8Array(Buffer.from(listingData.project_type, 'utf8'))),
+        ],
+      });
+
+      const result = await signAndExecuteTransaction.mutateAsync({
+        transaction: txb,
+      });
+      console.log('Carbon credits listed successfully:', result);
+      return result.digest;
+    } catch (error) {
+      console.error('Error listing carbon credits:', error);
+      throw error;
+    }
+  }
+
   // Buy carbon credits from marketplace
   async buyCarbonCredits(
     listing_id: string,
