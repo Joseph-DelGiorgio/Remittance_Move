@@ -1,17 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSignAndExecuteTransaction, ConnectButton } from '@mysten/dapp-kit';
 import { MarketplaceCard } from '@/components/marketplace/MarketplaceCard';
 import { ItemCard } from '@/components/marketplace/ItemCard';
-import { ListItemForm } from '@/components/marketplace/ListItemForm';
-import { ProjectRegistrationForm } from '@/components/marketplace/ProjectRegistrationForm';
 import { QuickCarbonCreditForm } from '@/components/marketplace/QuickCarbonCreditForm';
-import { CarbonCreditsInfo } from '@/components/marketplace/CarbonCreditsInfo';
-import { CarbonCreditsHelp } from '@/components/marketplace/CarbonCreditsHelp';
 import { Button } from '@/components/ui/Button';
 import { useSuiClient } from '@mysten/dapp-kit';
-import { CarbonCreditsService, CarbonCreditListing, CarbonCreditMintingData, ProjectRegistrationData } from '@/services/marketplaceService';
+import { CarbonCreditsService, CarbonCreditListing, CarbonCreditMintingData } from '@/services/marketplaceService';
 
 // Mock data for carbon credit marketplace
 const mockCarbonCredits = [
@@ -63,10 +59,7 @@ export default function MarketplacePage() {
   const account = useCurrentAccount();
   const signAndExecuteTransaction = useSignAndExecuteTransaction();
   const [isLoading, setIsLoading] = useState(false);
-  const [showListForm, setShowListForm] = useState(false);
-  const [showProjectRegistration, setShowProjectRegistration] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [listings, setListings] = useState<CarbonCreditListing[]>(mockCarbonCredits);
   const [stats, setStats] = useState({
@@ -82,93 +75,14 @@ export default function MarketplacePage() {
     'Forest Conservation',
     'Renewable Energy',
     'Ocean Conservation',
-    'Waste Management',
-    'Sustainable Agriculture',
-    'Clean Technology',
-    'Carbon Capture',
   ];
 
   const filteredListings = selectedCategory === 'All' 
     ? listings 
     : listings.filter(item => {
-        // For now, we'll use mock data categories
         const mockCategories = ['Forest Conservation', 'Renewable Energy', 'Ocean Conservation'];
         return mockCategories.includes(selectedCategory);
       });
-
-  const handleListCarbonCredits = async (mintingData: CarbonCreditMintingData) => {
-    if (!account?.address) {
-      alert('Please connect your wallet first');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      console.log('Purchasing carbon credits with real transaction:', mintingData);
-      
-      // Call the carbon credits service to purchase from treasury
-      const digest = await carbonCreditsService.mintAndListCarbonCredits(
-        mintingData,
-        signAndExecuteTransaction
-      );
-      
-      console.log('Transaction submitted:', digest);
-      
-      // Show success message with next steps
-      const successMessage = 
-        '✅ Carbon credits purchased successfully from treasury!\n\n' +
-        'Transaction Digest: ' + digest + '\n\n' +
-        'What\'s Working:\n' +
-        '✅ Purchase from treasury (0.1 SUI per credit)\n' +
-        '✅ Real blockchain transactions\n' +
-        '✅ Wallet integration\n\n' +
-        'Current Limitations:\n' +
-        '⚠️ Listing credits for sale requires project registration\n' +
-        '⚠️ Buying from listings requires additional setup\n\n' +
-        'You now have ' + mintingData.credits_amount + ' carbon credits purchased from the treasury. ' +
-        'The full marketplace functionality (listing and buying) requires additional contract setup.';
-      
-      alert(successMessage);
-      
-      // Add new listing to the list for demonstration (marked as real)
-      const newListing: CarbonCreditListing = {
-        id: `real_${Date.now()}`, // Mark as real listing
-        project_name: mintingData.project_name,
-        project_description: mintingData.project_description,
-        project_location: mintingData.project_location,
-        verification_standard: mintingData.verification_standard,
-        project_type: mintingData.project_type,
-        seller: account.address,
-        credits_amount: mintingData.credits_amount,
-        price_per_credit: mintingData.price_per_credit,
-        total_price: mintingData.price_per_credit * mintingData.credits_amount,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      };
-      
-      setListings(prev => [newListing, ...prev]);
-      setStats(prev => ({ ...prev, totalItems: prev.totalItems + 1 }));
-      setShowListForm(false);
-      
-    } catch (error: any) {
-      console.error('Error purchasing carbon credits:', error);
-      
-      // Provide specific error messages
-      if (error.message?.includes('insufficient')) {
-        alert('Insufficient balance for transaction. You need at least ' + 
-              (mintingData.credits_amount * 0.1).toFixed(2) + ' SUI to purchase ' + 
-              mintingData.credits_amount + ' carbon credits.');
-      } else if (error.message?.includes('gas')) {
-        alert('Gas estimation failed. Please try again.');
-      } else if (error.message?.includes('MoveAbort')) {
-        alert('Contract execution failed. Please check your input and try again.');
-      } else {
-        alert('Error purchasing carbon credits. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleQuickCreate = async (creditData: any) => {
     if (!account?.address) {
@@ -178,32 +92,13 @@ export default function MarketplacePage() {
 
     setIsLoading(true);
     try {
-      console.log('Creating carbon credits with simplified UX:', creditData);
-      
-      // Call the carbon credits service to create and list credits
       const digest = await carbonCreditsService.createAndListCarbonCredits(
         creditData,
         signAndExecuteTransaction,
         account.address
       );
       
-      console.log('Carbon credits created and listed:', digest);
-      
-      // Show success message
-      const successMessage = 
-        '🚀 Carbon credits created and listed successfully!\n\n' +
-        'Transaction Digest: ' + digest + '\n\n' +
-        '✅ Your carbon credits are now live on the marketplace!\n' +
-        '✅ Other users can buy your credits immediately\n' +
-        '✅ No complex registration needed\n\n' +
-        'Project Details:\n' +
-        '• Name: ' + creditData.project_name + '\n' +
-        '• Credits: ' + creditData.credits_amount.toLocaleString() + '\n' +
-        '• Price: ' + (creditData.price_per_credit / 1000000000).toFixed(2) + ' SUI per credit\n' +
-        '• Total Value: ' + ((creditData.credits_amount * creditData.price_per_credit) / 1000000000).toFixed(2) + ' SUI\n\n' +
-        '💡 Your credits are now available for purchase by other users!';
-      
-      alert(successMessage);
+      alert('Carbon credits created successfully!');
       setShowQuickCreate(false);
       
       // Add new listing to the list for demonstration
@@ -228,72 +123,14 @@ export default function MarketplacePage() {
     } catch (error: any) {
       console.error('Error creating carbon credits:', error);
       
-      // Provide specific error messages
       if (error.message?.includes('insufficient')) {
-        alert('Insufficient balance for transaction. You need at least ' + 
-              (creditData.credits_amount * 0.1).toFixed(2) + ' SUI to create ' + 
-              creditData.credits_amount + ' carbon credits.');
+        alert('Insufficient balance for transaction');
       } else if (error.message?.includes('gas')) {
         alert('Gas estimation failed. Please try again.');
       } else if (error.message?.includes('MoveAbort')) {
         alert('Contract execution failed. Please check your input and try again.');
       } else {
         alert('Error creating carbon credits. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRegisterProject = async (projectData: ProjectRegistrationData) => {
-    if (!account?.address) {
-      alert('Please connect your wallet first');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      console.log('Registering project in registry:', projectData);
-      
-      // Call the carbon credits service to register the project
-      const digest = await carbonCreditsService.addVerifiedProject(
-        projectData,
-        signAndExecuteTransaction
-      );
-      
-      console.log('Project registration submitted:', digest);
-      
-      // Show success message with Project ID
-      const successMessage = 
-        '✅ Project registered successfully in the carbon credit registry!\n\n' +
-        'Transaction Digest: ' + digest + '\n\n' +
-        '📋 Your Project ID: ' + projectData.project_id + '\n\n' +
-        'Next Steps:\n' +
-        '1. ✅ Your project is now verified and can list carbon credits\n' +
-        '2. Use "Mint & List Carbon Credits" to purchase credits from treasury\n' +
-        '3. List your credits for sale on the marketplace\n\n' +
-        'Your project "' + projectData.name + '" is now registered with:\n' +
-        '• Project ID (Wallet Address): ' + projectData.project_id + '\n' +
-        '• Verification Standard: ' + projectData.verification_standard + '\n' +
-        '• Project Type: ' + projectData.project_type + '\n' +
-        '• Location: ' + projectData.location + '\n\n' +
-        '💡 Your Project ID is your wallet address - you can use it to list carbon credits!';
-      
-      alert(successMessage);
-      setShowProjectRegistration(false);
-      
-    } catch (error: any) {
-      console.error('Error registering project:', error);
-      
-      // Provide specific error messages
-      if (error.message?.includes('insufficient')) {
-        alert('Insufficient balance for transaction. Please ensure you have enough SUI for gas fees.');
-      } else if (error.message?.includes('gas')) {
-        alert('Gas estimation failed. Please try again.');
-      } else if (error.message?.includes('MoveAbort')) {
-        alert('Contract execution failed. Please check your input and try again.');
-      } else {
-        alert('Error registering project. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -308,86 +145,29 @@ export default function MarketplacePage() {
 
     setIsLoading(true);
     try {
-      console.log('Buying carbon credits with real transaction:', listingId, 'for', totalPrice, 'MIST');
-      
-      // Check if this is a mock listing (starts with a number)
-      if (listingId.match(/^\d+$/)) {
-        alert(
-          '⚠️ This is a demo listing for demonstration purposes.\n\n' +
-          'Demo listings cannot be purchased on the blockchain.\n\n' +
-          'To buy real carbon credits:\n' +
-          '1. First purchase carbon credits from the treasury using "List Carbon Credits"\n' +
-          '2. Then list them for sale with real blockchain transactions\n' +
-          '3. Other users can then buy your listed credits\n\n' +
-          'Real listings will have a "Buy Now" button instead of "Demo Buy".'
-        );
-        return;
-      }
-      
-      // Check if this is a real listing (starts with "real_")
-      if (listingId.startsWith('real_')) {
-        alert(
-          '⚠️ This listing was created locally but not yet listed on the blockchain.\n\n' +
-          'Current Limitation: To list credits for sale on the blockchain, the project must be registered in the registry first.\n\n' +
-          'For now, you can:\n' +
-          '1. Purchase carbon credits from the treasury (which works)\n' +
-          '2. View your purchased credits locally\n' +
-          '3. Wait for the full listing functionality to be implemented\n\n' +
-          'The purchase from treasury works correctly, but listing and buying require additional contract setup.'
-        );
-        return;
-      }
-      
-      // Find the listing
-      const listing = listings.find(l => l.id === listingId);
-      if (!listing) {
-        throw new Error('Carbon credit listing not found');
-      }
-      
-      // For real listings, we need to use the seller address as the listing_id
-      // since that's how the contract stores listings
-      const listing_id = listing.seller;
-      
-      console.log('Using listing_id (seller address):', listing_id);
-      
-      // Call the carbon credits service
       const digest = await carbonCreditsService.buyCarbonCredits(
-        listing_id, // Use seller address as listing_id
+        listingId,
         totalPrice,
         signAndExecuteTransaction
       );
       
-      console.log('Purchase successful:', digest);
+      alert('Carbon credits purchased successfully!');
       
-      // Update listing status
-      setListings(prev => prev.map(listing => 
-        listing.id === listingId 
-          ? { ...listing, is_active: false }
-          : listing
-      ));
+      // Remove the listing from the list
+      setListings(prev => prev.filter(item => item.id !== listingId));
+      setStats(prev => ({ ...prev, totalItems: prev.totalItems - 1 }));
       
-      setStats(prev => ({ 
-        ...prev, 
-        totalVolume: prev.totalVolume + totalPrice 
-      }));
-      
-      alert('✅ Carbon credits purchased successfully!\n\nTransaction: ' + digest + '\n\nYou now have the carbon credit tokens in your wallet.');
     } catch (error: any) {
       console.error('Error buying carbon credits:', error);
       
-      // Provide specific error messages
       if (error.message?.includes('insufficient')) {
         alert('Insufficient balance for purchase');
       } else if (error.message?.includes('gas')) {
         alert('Gas estimation failed. Please try again.');
       } else if (error.message?.includes('MoveAbort')) {
-        alert('Contract execution failed. This listing may not exist on the blockchain or may have already been sold.');
-      } else if (error.message?.includes('TypeMismatch')) {
-        alert('Contract error: Type mismatch. This listing may not exist on the blockchain.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
-      } else if (error.message?.includes('User rejected')) {
-        alert('Transaction was rejected by the user.\n\nThis means the wallet popup appeared but you clicked "Reject" or "Cancel".\n\nTo complete the purchase:\n1. Click "Buy Now" again\n2. Approve the transaction in your wallet popup\n3. Wait for the transaction to complete');
+        alert('Contract execution failed. Please check your input and try again.');
       } else {
-        alert('Error purchasing carbon credits. Please try again.\n\nNote: Only real listings created through the "List Carbon Credits" button can be purchased.');
+        alert('Error buying carbon credits. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -395,246 +175,105 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-6">
-              <div>
-                <h1 className="text-4xl font-bold text-green-900 mb-2">
-                  Carbon Credit Marketplace
-                </h1>
-                <p className="text-lg text-green-700">
-                  Trade tokenized carbon credits on Sui blockchain
-                </p>
-              </div>
-              
-              <a
-                href="/"
-                className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-primary-600 transition-colors duration-200 rounded-lg hover:bg-gray-100"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-                <span>Remittance</span>
-              </a>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <h1 className="text-2xl font-bold text-gradient">Carbon Credits</h1>
             </div>
             
-            {account?.address && (
-              <div className="flex space-x-3">
-                <Button
-                  variant="success"
-                  size="lg"
-                  onClick={() => setShowQuickCreate(!showQuickCreate)}
-                >
-                  {showQuickCreate ? 'Cancel' : '🚀 Quick Create'}
-                </Button>
-                <Button
-                  variant="success"
-                  size="lg"
-                  onClick={() => setShowListForm(!showListForm)}
-                >
-                  {showListForm ? 'Cancel' : 'List Carbon Credits'}
-                </Button>
-                <Button
-                  variant="success"
-                  size="lg"
-                  onClick={() => setShowProjectRegistration(!showProjectRegistration)}
-                >
-                  {showProjectRegistration ? 'Cancel' : 'Register Project'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onClick={() => setShowHelp(!showHelp)}
-                >
-                  {showHelp ? 'Hide Help' : 'Show Help'}
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          {/* Note about current functionality */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-green-800 font-medium">Live Carbon Credit Marketplace</span>
-            </div>
-            <p className="text-green-700 mt-2">
-              This is a fully functional carbon credit marketplace on Sui blockchain. You can purchase carbon credits 
-              from the treasury (0.1 SUI per credit) and then list them for sale. The contract includes a treasury, 
-              registry, and marketplace with real transaction functionality.
-            </p>
-            <div className="mt-3 text-sm text-green-600">
-              <p><strong>✅ Currently Working:</strong></p>
-              <ul className="list-disc list-inside space-y-1 mt-1">
-                <li>Register projects in the carbon credit registry</li>
-                <li>Purchase carbon credits from treasury (0.1 SUI per credit)</li>
-                <li>Wallet integration and transaction signing</li>
-                <li>Real blockchain transactions</li>
-                <li>Demo vs real listing distinction</li>
-              </ul>
-              <p className="mt-2"><strong>Complete Workflow:</strong></p>
-              <ol className="list-decimal list-inside space-y-1 mt-1">
-                <li>Click "Register Project" to add your project to the registry</li>
-                <li>Click "List Carbon Credits" to purchase credits from treasury</li>
-                <li>Complete the form with your project details</li>
-                <li>Pay 0.1 SUI per credit to the treasury</li>
-                <li>Your credits will appear as real listings that can be purchased</li>
-              </ol>
-              <p className="mt-2 text-orange-600">
-                <strong>Note:</strong> Projects must be registered in the registry before they can list carbon credits. 
-                This ensures all credits come from verified, legitimate projects.
-              </p>
+            <div className="flex items-center space-x-4">
+              <ConnectButton />
+              <a
+                href="/"
+                className="hidden sm:flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-primary-600 transition-colors duration-200"
+              >
+                <span>Send Money</span>
+              </a>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Carbon Credits Info */}
-        <CarbonCreditsInfo />
-
-        {/* Help Section */}
-        {showHelp && (
-          <div className="mb-8">
-            <CarbonCreditsHelp />
-          </div>
-        )}
-
-        {/* Stats Card */}
-        <div className="mb-8">
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Marketplace Stats */}
           <MarketplaceCard stats={stats} />
-        </div>
 
-        {/* Category Filter */}
-        <div className="mb-6">
+          {/* Category Filter */}
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                   selectedCategory === category
-                    ? 'bg-green-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-green-50 border border-gray-200'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {category}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* List Form */}
-        {showListForm && (
-          <div className="mb-8">
-            <ListItemForm
-              onSubmit={handleListCarbonCredits}
-              isLoading={isLoading}
-            />
+          {/* Action Buttons */}
+          {account && (
+            <div className="flex flex-wrap gap-4">
+              <Button
+                onClick={() => setShowQuickCreate(true)}
+                variant="success"
+                size="lg"
+                disabled={isLoading}
+              >
+                Create Credits
+              </Button>
+            </div>
+          )}
+
+          {/* Carbon Credit Listings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredListings.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={{
+                  id: item.id,
+                  name: item.project_name,
+                  description: item.project_description,
+                  price: item.total_price,
+                  seller: item.seller,
+                  imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300&fit=crop',
+                  category: item.project_type,
+                  createdAt: item.created_at,
+                  isForSale: item.is_active,
+                }}
+                onBuy={handleBuyCarbonCredits}
+                isLoading={isLoading}
+                currentUser={account?.address}
+              />
+            ))}
           </div>
-        )}
 
-        {/* Quick Create Form */}
-        {showQuickCreate && (
-          <div className="mb-8">
+          {/* Quick Create Modal */}
+          {showQuickCreate && (
             <QuickCarbonCreditForm
               onSubmit={handleQuickCreate}
               isLoading={isLoading}
             />
-          </div>
-        )}
+          )}
 
-        {/* Project Registration Form */}
-        {showProjectRegistration && (
-          <div className="mb-8">
-            <ProjectRegistrationForm
-              onSubmit={handleRegisterProject}
-              isLoading={isLoading}
-            />
-          </div>
-        )}
-
-        {/* Listings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredListings.map((listing) => (
-            <ItemCard
-              key={listing.id}
-              item={{
-                id: listing.id,
-                name: listing.project_name,
-                description: listing.project_description,
-                price: listing.total_price,
-                seller: listing.seller,
-                imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300&fit=crop',
-                category: listing.project_type,
-                createdAt: listing.created_at,
-                isForSale: listing.is_active,
-              }}
-              onBuy={handleBuyCarbonCredits}
-              onRemove={() => {}} // Not implemented for carbon credits
-              isLoading={isLoading}
-            />
-          ))}
+          {/* Connect Wallet Prompt */}
+          {!account && (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Connect Wallet</h3>
+              <p className="text-gray-600 mb-4">Connect your wallet to trade carbon credits</p>
+            </div>
+          )}
         </div>
-
-        {filteredListings.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-500 text-lg">
-              No carbon credit listings found for {selectedCategory}.
-            </div>
-            <p className="text-gray-400 mt-2">
-              Be the first to list carbon credits in this category!
-            </p>
-          </div>
-        )}
-
-        {/* Note about mock listings */}
-        {filteredListings.length > 0 && (
-          <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              <span className="text-yellow-800 font-medium">Marketplace Status</span>
-            </div>
-            <div className="text-yellow-700 text-sm space-y-2">
-              <p>
-                <strong>✅ Fully Working:</strong>
-              </p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Purchase carbon credits from treasury (0.1 SUI per credit)</li>
-                <li>Real blockchain transactions</li>
-                <li>Wallet integration and signing</li>
-                <li>Demo vs real listing distinction</li>
-              </ul>
-              <p className="mt-2">
-                <strong>⚠️ Current Limitations:</strong>
-              </p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Listing credits for sale requires project registration in registry</li>
-                <li>Buying from listings requires additional contract setup</li>
-                <li>Real listings are stored locally but not on blockchain yet</li>
-              </ul>
-              <p className="font-medium mt-2">
-                The marketplace is functional for purchasing from treasury, but full listing and buying functionality requires additional contract setup.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   );
 } 

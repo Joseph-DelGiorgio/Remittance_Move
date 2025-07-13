@@ -114,16 +114,13 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
   return (
     <Card className="fade-in">
       <CardHeader>
-        <h3 className="text-xl font-semibold text-green-900">🚀 Quick Carbon Credit Creation</h3>
-        <p className="text-green-700">
-          Create and list carbon credits instantly - no complex registration needed!
-        </p>
+        <h3 className="text-xl font-semibold text-black">Create Carbon Credits</h3>
       </CardHeader>
       
       <CardBody>
         {/* Quick Presets */}
         <div className="mb-6">
-          <h4 className="text-lg font-semibold text-green-800 mb-3">Quick Start Templates</h4>
+          <h4 className="text-lg font-semibold text-black mb-3">Quick Start Templates</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {presetProjects.map((preset, index) => (
               <button
@@ -131,9 +128,9 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
                 onClick={() => usePreset(preset)}
                 className="p-4 border border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors text-left"
               >
-                <h5 className="font-semibold text-green-800 mb-1">{preset.name}</h5>
-                <p className="text-sm text-green-700 mb-2">{preset.description}</p>
-                <div className="text-xs text-green-600">
+                <h5 className="font-semibold text-black mb-1">{preset.name}</h5>
+                <p className="text-sm text-black mb-2">{preset.description}</p>
+                <div className="text-xs text-gray-600">
                   <p>📍 {preset.location}</p>
                   <p>🌱 {preset.type}</p>
                   <p>✅ {preset.standard}</p>
@@ -144,10 +141,10 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Project Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Project Name
             </label>
             <input
@@ -155,14 +152,14 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
               value={formData.project_name}
               onChange={(e) => handleInputChange('project_name', e.target.value)}
               placeholder="My Carbon Credit Project"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
               required
             />
           </div>
 
           {/* Project Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Project Description
             </label>
             <textarea
@@ -170,14 +167,14 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
               onChange={(e) => handleInputChange('project_description', e.target.value)}
               placeholder="Describe your environmental project..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
               required
             />
           </div>
 
           {/* Project Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-black mb-2">
               Project Location
             </label>
             <input
@@ -185,26 +182,26 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
               value={formData.project_location}
               onChange={(e) => handleInputChange('project_location', e.target.value)}
               placeholder="City, Country"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
               required
             />
           </div>
 
           {/* Two Column Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Verification Standard */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Verification Standard
               </label>
               <select
                 value={formData.verification_standard}
                 onChange={(e) => handleInputChange('verification_standard', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 required
               >
                 {verificationStandards.map((standard) => (
-                  <option key={standard} value={standard}>
+                  <option key={standard} value={standard} className="text-black">
                     {standard}
                   </option>
                 ))}
@@ -213,17 +210,17 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
 
             {/* Project Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Project Type
               </label>
               <select
                 value={formData.project_type}
                 onChange={(e) => handleInputChange('project_type', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 required
               >
                 {projectTypes.map((type) => (
-                  <option key={type} value={type}>
+                  <option key={type} value={type} className="text-black">
                     {type}
                   </option>
                 ))}
@@ -232,10 +229,10 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
           </div>
 
           {/* Two Column Layout for Credits and Price */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Credits Amount */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Number of Credits
               </label>
               <input
@@ -244,17 +241,17 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
                 onChange={(e) => handleInputChange('credits_amount', parseInt(e.target.value))}
                 min="1"
                 max="10000"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 Each credit represents 1 ton of CO2
               </p>
             </div>
 
             {/* Price per Credit */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Price per Credit (SUI)
               </label>
               <input
@@ -264,10 +261,10 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
                 min="0.1"
                 max="10"
                 step="0.1"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 Price in SUI (1 SUI = 1,000,000,000 MIST)
               </p>
             </div>
@@ -275,8 +272,8 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
 
           {/* Summary */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h4 className="font-semibold text-green-800 mb-2">📊 Project Summary</h4>
-            <div className="text-green-700 text-sm space-y-1">
+            <h4 className="font-semibold text-black mb-2">📊 Project Summary</h4>
+            <div className="text-black text-sm space-y-1">
               <p><strong>Total Credits:</strong> {formData.credits_amount.toLocaleString()}</p>
               <p><strong>Price per Credit:</strong> {(formData.price_per_credit / 1000000000).toFixed(2)} SUI</p>
               <p><strong>Total Value:</strong> {((formData.credits_amount * formData.price_per_credit) / 1000000000).toFixed(2)} SUI</p>
@@ -302,13 +299,13 @@ export const QuickCarbonCreditForm: React.FC<QuickCarbonCreditFormProps> = ({
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-4">
             <Button
               type="submit"
               disabled={isLoading || !account?.address}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creating Carbon Credits...' : '🚀 Create & List Carbon Credits'}
+              {isLoading ? 'Creating...' : 'Create Credits'}
             </Button>
           </div>
         </form>

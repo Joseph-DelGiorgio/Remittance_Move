@@ -5,10 +5,10 @@ import { Transaction } from '@mysten/sui/transactions';
 const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
 
 // Updated Carbon Credits Package ID and Object IDs from the new deployment
-const CARBON_CREDITS_PACKAGE_ID = '0x08a91e0eee53bdade76d9b4c37ceead073d249ac2870f458fc78fc366c46bd40';
-const CARBON_MARKETPLACE_OBJECT_ID = '0x70bea4d3084daec70ef0d8d7e01cbff87e9d11f122aa84e13caf7a66f266e916';
-const CARBON_TREASURY_OBJECT_ID = '0x42f70bac8a056e24bacc9e36eca2f415724f44d57ef9e55acaea97e729059aab';
-const CARBON_REGISTRY_OBJECT_ID = '0x00fcf3c0bad36bd5ed93a29debf97e8ddb11e79f4a2b43ad3182af7805a63b17';
+const CARBON_CREDITS_PACKAGE_ID = '0x7a1a227efae4adb8a4711f51c5a0349c5ec282f50d172696dd0db265d6b8aee9';
+const CARBON_MARKETPLACE_OBJECT_ID = '0x0b5e3388a86924091a96df1f7ce9bef67019c706f75d76854a72cf16fb605b50';
+const CARBON_TREASURY_OBJECT_ID = '0x61da13f1e6ec84311b1a314386bc45d4d24e81a539d2431799f3f32ec102742f';
+const CARBON_REGISTRY_OBJECT_ID = '0x68710e4da522bfdb0faa1a9e2524667dc6c86b58772025807f326d86741bbfc9';
 
 export interface CarbonCreditListing {
   id: string;
@@ -78,11 +78,11 @@ export class CarbonCreditsService {
         arguments: [
           txb.object(CARBON_REGISTRY_OBJECT_ID),
           txb.pure.address(projectData.project_id),
-          txb.pure(new Uint8Array(Buffer.from(projectData.name, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(projectData.description, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(projectData.location, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(projectData.verification_standard, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(projectData.project_type, 'utf8'))),
+          txb.pure.string(projectData.name),
+          txb.pure.string(projectData.description),
+          txb.pure.string(projectData.location),
+          txb.pure.string(projectData.verification_standard),
+          txb.pure.string(projectData.project_type),
           txb.pure.u64(projectData.expiry_date),
         ],
       });
@@ -311,46 +311,42 @@ export class CarbonCreditsService {
       
       const txb = new Transaction();
       
-      // Step 1: Purchase carbon credits from treasury (this creates the credits)
-      const required_payment = creditData.credits_amount * 100000000; // 0.1 SUI per credit
-      const [payment_coin] = txb.splitCoins(txb.gas, [required_payment]);
+      // Step 1: Register the project first
+      const project_id = accountAddress;
       
       txb.moveCall({
-        target: `${CARBON_CREDITS_PACKAGE_ID}::carbon_credits::purchase_carbon_credits`,
+        target: `${CARBON_CREDITS_PACKAGE_ID}::carbon_credits::register_project`,
         arguments: [
-          txb.object(CARBON_TREASURY_OBJECT_ID),
-          payment_coin,
+          txb.object(CARBON_REGISTRY_OBJECT_ID),
+          txb.pure.address(project_id),
+          txb.pure.string(creditData.project_name),
+          txb.pure.string(creditData.project_description),
+          txb.pure.string(creditData.project_type),
+          txb.pure.string(creditData.verification_standard),
           txb.pure.u64(creditData.credits_amount),
         ],
       });
 
-      // Step 2: Create a simple project registration using wallet address as project ID
-      // This bypasses the complex registration process
-      const project_id = accountAddress;
+      // Step 2: For now, we'll skip minting since we don't have access to the treasury cap
+      // In a real implementation, the treasury cap would be owned by the deployer
+      // and we would need to coordinate with them for minting
+      console.log('Skipping minting step - treasury cap not available');
       
-      txb.moveCall({
-        target: `${CARBON_CREDITS_PACKAGE_ID}::carbon_credits::add_verified_project`,
-        arguments: [
-          txb.object(CARBON_REGISTRY_OBJECT_ID),
-          txb.pure.address(project_id),
-          txb.pure(new Uint8Array(Buffer.from(creditData.project_name, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(creditData.project_description, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(creditData.project_location, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(creditData.verification_standard, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(creditData.project_type, 'utf8'))),
-          txb.pure.u64(Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60)), // 1 year expiry
-        ],
-      });
+      // Note: In a production environment, you would:
+      // 1. Have the treasury cap owned by a trusted party
+      // 2. Use a separate transaction to mint credits
+      // 3. Then list the credits using the coin object ID
 
-      // Step 3: List the credits immediately (we'll need to get the coin object ID from the purchase)
-      // For now, we'll create a simplified listing that doesn't require the coin object
-      // This is a simplified approach - in production you'd track the coin object ID
+      // Note: We can't list the credits in the same transaction because we need the coin object ID
+      // from the minting transaction. This would require a two-step process:
+      // 1. First transaction: Register project and mint credits
+      // 2. Second transaction: List the credits using the coin object ID
       
       const result = await signAndExecuteTransaction.mutateAsync({
         transaction: txb,
       });
       
-      console.log('Carbon credits created and listed successfully:', result);
+      console.log('Project registered successfully:', result);
       return result.digest;
     } catch (error) {
       console.error('Error creating and listing carbon credits:', error);
@@ -410,11 +406,11 @@ export class MarketplaceService {
         target: `${MARKETPLACE_PACKAGE_ID}::marketplace::list_item`,
         arguments: [
           txb.object(MARKETPLACE_OBJECT_ID),
-          txb.pure(new Uint8Array(Buffer.from(itemData.name, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(itemData.description, 'utf8'))),
+          txb.pure.string(itemData.name),
+          txb.pure.string(itemData.description),
           txb.pure.u64(itemData.price),
-          txb.pure(new Uint8Array(Buffer.from(itemData.imageUrl, 'utf8'))),
-          txb.pure(new Uint8Array(Buffer.from(itemData.category, 'utf8'))),
+          txb.pure.string(itemData.imageUrl),
+          txb.pure.string(itemData.category),
         ],
       });
       const result = await signAndExecuteTransaction.mutateAsync({
